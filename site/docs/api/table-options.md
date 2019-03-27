@@ -25,7 +25,7 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Default:** `'table'`
 
-- **Example:** [From HTML](https://examples.bootstrap-table.com/#options/from-html.html)
+- **Example:** [From HTML](https://examples.bootstrap-table.com/#welcomes/from-html.html)
 
 ## height
 
@@ -137,7 +137,7 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
   * Then tries the the short locale code (i.e. `'zh'` instead of `'fr-CA'`),
   * And finally will use the last locale file loaded (or the default locale if no locales loaded).
 
-  If left `undfined` or an empty string, uses the last locale loaded (or `'en-US'` if no locale files loaded).
+  If left `undefined` or an empty string, uses the last locale loaded (or `'en-US'` if no locale files loaded).
 
 - **Default:** `undefined`
 
@@ -275,7 +275,7 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 ## data
 
-- **Attribute:** `-`
+- **Attribute:** `data-data`
 
 - **Type:** `Array | Object`
 
@@ -285,7 +285,7 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Default:** `[]`
 
-- **Example:** [From Data](https://examples.bootstrap-table.com/#options/from-data.html)
+- **Example:** [From Data](https://examples.bootstrap-table.com/#welcomes/from-data.html)
 
 ## url
 
@@ -304,7 +304,11 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Default:** `undefined`
 
-- **Example:** [From URL](https://examples.bootstrap-table.com/#options/from-url.html)
+- **Error handling**
+
+  To get loading errors please use [onLoadError](https://bootstrap-table.com/docs/api/events/#onloaderror)
+
+- **Example:** [From URL](https://examples.bootstrap-table.com/#welcomes/from-url.html)
 
 ## method
 
@@ -496,6 +500,33 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Example:** [Only Info Pagination](https://examples.bootstrap-table.com/#options/only-info-pagination.html)
 
+## showExtendedPagination
+
+- **Attribute:** `data-show-extended-pagination`
+
+- **Type:** `Boolean`
+
+- **Detail:**
+
+  Set `true` to show a extended version of pagination (including the count of all rows with out filters).
+  If you use pagination on the server side pls use totalNotFilteredField to define the count.
+
+- **Default:** `false`
+
+- **Example:** [Only Info Pagination](https://examples.bootstrap-table.com/#options/show-extended-pagination.html)
+
+## totalNotFilteredField
+
+- **Attribute:** `data-total-not-filtered-field`
+
+- **Type:** `string`
+
+- **Detail:**
+
+  The field from the json response which will used for showExtendedPagination.
+
+- **Default:** `totalNotFiltered`
+
 ## paginationLoop
 
 - **Attribute:** `data-pagination-loop`
@@ -578,7 +609,7 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Detail:**
 
-  When set pagination property, initialize the page size selecting list. If you include the `'All'` or `'Unlimited'` option, all the records will be shown in your table.
+  When set pagination property, initialize the page size selecting list. If you include the `'all'` or `'unlimited'` option, all the records will be shown in your table.
 
 - **Default:** `[10, 25, 50, 100]`
 
@@ -706,6 +737,14 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
   Enable the search input.
 
+  There are 3 ways to search:
+  - The value contains the search query (Default).
+    Example: Github contains git.
+  - The value must be identical to the search query.
+    Example: Github (value) and Github (search query).
+  - Comparisons (<, >, <=, =<, >=, =>)
+    Example: 4 is larger than 3.
+
 - **Default:** `false`
 
 - **Example:** [Table Search](https://examples.bootstrap-table.com/#options/table-search.html)
@@ -733,6 +772,7 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 - **Detail:**
 
   Enable the strict search.
+  Disables the comparison checks.
 
 - **Default:** `false`
 
@@ -857,22 +897,24 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Detail:**
 
-  The footer style formatter function, takes two parameters:
+  The footer style formatter function, takes one parameter:
 
-  * `row`: the row record data.
-  * `index`: the row index.
+  * `column`: the column object.
 
   Support classes or css. Example usage:
 
   {% highlight javascript %}
-  function footerStyle(value, row, index) {
+  function footerStyle(column) {
     return {
-      css: { "font-weight": "bold" }
+      css: { 'font-weight': 'normal' },
+      classes: 'my-class'
     }
   }
   {% endhighlight %}
 
 - **Default:** `{}`
+
+- **Example:** [Footer Style](https://examples.bootstrap-table.com/#options/footer-style.html)
 
 ## showColumns
 
@@ -886,6 +928,8 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Default:** `false`
 
+- **Example:** [Basic Columns](https://examples.bootstrap-table.com/#options/basic-columns.html) and [Large Columns](https://examples.bootstrap-table.com/#options/large-columns.html)
+
 ## minimumCountColumns
 
 - **Attribute:** `data-minimum-count-columns`
@@ -897,6 +941,8 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
   The minimum number of columns to hide from the columns drop down list.
 
 - **Default:** `1`
+
+- **Example:** [Minimum Count Columns](https://examples.bootstrap-table.com/#options/minimum-count-columns.html)
 
 ## showPaginationSwitch
 
@@ -910,6 +956,8 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Default:** `false`
 
+- **Example:** [Show Pagination Switch](https://examples.bootstrap-table.com/#options/show-pagination-switch.html)
+
 ## showRefresh
 
 - **Attribute:** `data-show-refresh`
@@ -921,6 +969,8 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
   Set `true` to show the refresh button.
 
 - **Default:** `false`
+
+- **Example:** [Show Refresh](https://examples.bootstrap-table.com/#options/show-refresh.html)
 
 ## showToggle
 
@@ -934,6 +984,8 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Default:** `false`
 
+- **Example:** [Show Toggle](https://examples.bootstrap-table.com/#options/show-toggle.html)
+
 ## showFullscreen
 
 - **Attribute:** `data-show-fullscreen`
@@ -945,6 +997,8 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
   Set `true` to show the fullscreen button.
 
 - **Default:** `false`
+
+- **Example:** [Show Fullscreen](https://examples.bootstrap-table.com/#options/show-fullscreen.html)
 
 ## smartDisplay
 
@@ -958,6 +1012,8 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Default:** `true`
 
+- **Example:** [Smart Display](https://examples.bootstrap-table.com/#options/smart-display.html)
+
 ## escape
 
 - **Attribute:** `data-escape`
@@ -970,6 +1026,8 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Default:** `false`
 
+- **Example:** [Table Escape](https://examples.bootstrap-table.com/#options/table-escape.html)
+
 ## idField
 
 - **Attribute:** `data-id-field`
@@ -978,69 +1036,11 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Detail:**
 
-  Indicate which field is an identity field.
+  Indicate which field will be used as checkbox/radiobox value, its the counterpart to [selectItemName](https://bootstrap-table.com/docs/api/table-options/#selectitemname).
 
 - **Default:** `undefined`
 
-## uniqueId
-
-- **Attribute:** `data-unique-id`
-
-- **Type:** `String`
-
-- **Detail:**
-
-  Indicate an unique identifier for each row.
-
-- **Default:** `undefined`
-
-## cardView
-
-- **Attribute:** `data-card-view`
-
-- **Type:** `Boolean`
-
-- **Detail:**
-
-  Set `true` to show card view table, for example mobile view.
-
-- **Default:** `false`
-
-## detailView
-
-- **Attribute:** `data-detail-view`
-
-- **Type:** `Boolean`
-
-- **Detail:**
-
-  Set `true` to show detail view table.
-
-- **Default:** `false`
-
-## detailFormatter
-
-- **Attribute:** `data-detail-formatter`
-
-- **Type:** `Function`
-
-- **Detail:**
-
-  Format your detail view when detailView is set to true. Return a String and it will be appended into the detail view cell, optionally render the element directly using the third parameter which is a jQuery element of the target cell.
-
-- **Default:** `function(index, row, element) { return '' }`
-
-## detailFilter
-
-- **Attribute:** `data-detail-filter`
-
-- **Type:** `Function`
-
-- **Detail:**
-
-  Enable expansion per row when detailView is set to true. Return true and the row will be enabled for expansion, return false and expansion for the row will be disabled. Default function returns true to enable expansion for all rows.
-
-- **Default:** `function(index, row) { return true }`
+- **Example:** [Id Field](https://examples.bootstrap-table.com/#options/id-field.html)
 
 ## selectItemName
 
@@ -1054,6 +1054,8 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Default:** `'btSelectItem'`
 
+- **Example:** [Id Field](https://examples.bootstrap-table.com/#options/id-field.html)
+
 ## clickToSelect
 
 - **Attribute:** `data-click-to-select`
@@ -1066,6 +1068,8 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Default:** `false`
 
+- **Example:** [Click To Select](https://examples.bootstrap-table.com/#options/click-to-select.html)
+
 ## ignoreClickToSelectOn
 
 - **Attribute:** `data-ignore-click-to-select-on`
@@ -1074,13 +1078,15 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Detail:**
 
-  Takes one parameters:
+  Set the ignore elements `clickToSelect` on. Takes one parameter:
 
   * `element`: the element clicked on.
 
-  Return true if the click should be ignored, false if the click should cause the row to be selected. This option is only relevant if clickToSelect is true.
+  Return true if the click should be ignored, false if the click should cause the row to be selected. This option is only relevant if `clickToSelect` is true.
 
-- **Default:** `{ return $.inArray(element.tagName, ['A', 'BUTTON']) }`
+- **Default:** `{ return ['A', 'BUTTON'].includes(tagName) }`
+
+- **Example:** [Ignore Click To Select On](https://examples.bootstrap-table.com/#options/ignore-click-to-select-on.html)
 
 ## singleSelect
 
@@ -1094,6 +1100,8 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Default:** `false`
 
+- **Example:** [Single Select](https://examples.bootstrap-table.com/#options/single-select.html)
+
 ## checkboxHeader
 
 - **Attribute:** `data-checkbox-header`
@@ -1105,6 +1113,8 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
   Set `false` to hide check-all checkbox in header row.
 
 - **Default:** `true`
+
+- **Example:** [Checkbox Header](https://examples.bootstrap-table.com/#options/checkbox-header.html)
 
 ## maintainSelected
 
@@ -1118,6 +1128,90 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Default:** `false`
 
+- **Example:** [Maintain Selected](https://examples.bootstrap-table.com/#options/maintain-selected.html)
+
+## uniqueId
+
+- **Attribute:** `data-unique-id`
+
+- **Type:** `String`
+
+- **Detail:**
+
+  Indicate an unique identifier for each row.
+
+- **Default:** `undefined`
+
+- **Example:** [getRowByUniqueId](https://examples.bootstrap-table.com/#methods/getRowByUniqueId.html)
+
+## cardView
+
+- **Attribute:** `data-card-view`
+
+- **Type:** `Boolean`
+
+- **Detail:**
+
+  Set `true` to show card view table, for example mobile view.
+
+- **Default:** `false`
+
+- **Example:** [Card View](https://examples.bootstrap-table.com/#options/card-view.html)
+
+## detailView
+
+- **Attribute:** `data-detail-view`
+
+- **Type:** `Boolean`
+
+- **Detail:**
+
+  Set `true` to show detail view table.
+
+- **Default:** `false`
+
+- **Example:** [Detail View](https://examples.bootstrap-table.com/#options/detail-view.html)
+
+## detailFormatter
+
+- **Attribute:** `data-detail-formatter`
+
+- **Type:** `Function`
+
+- **Detail:**
+
+  Format your detail view when detailView is set to true. Return a String and it will be appended into the detail view cell, optionally render the element directly using the third parameter which is a jQuery element of the target cell.
+
+- **Default:** `function(index, row, element) { return '' }`
+
+- **Example:** [Detail View](https://examples.bootstrap-table.com/#options/detail-view.html)
+
+## detailFilter
+
+- **Attribute:** `data-detail-filter`
+
+- **Type:** `Function`
+
+- **Detail:**
+
+  Enable expansion per row when detailView is set to true. Return true and the row will be enabled for expansion, return false and expansion for the row will be disabled. Default function returns true to enable expansion for all rows.
+
+- **Default:** `function(index, row) { return true }`
+
+- **Example:** [Detail Filter](https://examples.bootstrap-table.com/#options/detail-filter.html)
+
+## detailViewByClick
+
+- **Attribute:** `data-detail-view-by-click`
+
+- **Type:** `Boolean`
+
+- **Detail:**
+
+  Set `true` to toggle the detail view, when a cell is clicked.
+
+- **Example:** [Toggle detail view by click](https://examples.bootstrap-table.com/#options/detail-view-by-click.html)
+
 ## toolbar
 
 - **Attribute:** `data-toolbar`
@@ -1129,6 +1223,8 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
   A jQuery selector that indicates the toolbar, for example: `#toolbar`, `.toolbar`, or a DOM node.
 
 - **Default:** `undefined`
+
+- **Example:** [Custom Toolbar](https://examples.bootstrap-table.com/#options/custom-toolbar.html)
 
 ## toolbarAlign
 
@@ -1142,6 +1238,8 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Default:** `'left'`
 
+- **Example:** [Toolbar Align](https://examples.bootstrap-table.com/#options/toolbar-align.html)
+
 ## buttonsToolbar
 
 - **Attribute:** `data-buttons-toolbar`
@@ -1150,9 +1248,11 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Detail:**
 
-  A jQuery selector that indicates the buttons toolbar, for example: `#buttons-toolbar`, `.buttons-toolbar`, or a DOM node.
+  A jQuery selector that indicates the custom buttons toolbar, for example: `#buttons-toolbar`, `.buttons-toolbar`, or a DOM node.
 
 - **Default:** `undefined`
+
+- **Example:** [Buttons Toolbar](https://examples.bootstrap-table.com/#options/buttons-toolbar.html)
 
 ## buttonsAlign
 
@@ -1166,6 +1266,8 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Default:** `'right'`
 
+- **Example:** [Buttons Align](https://examples.bootstrap-table.com/#options/buttons-align.html)
+
 ## buttonsClass
 
 - **Attribute:** `data-buttons-class`
@@ -1174,9 +1276,11 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Detail:**
 
-  Defines the Bootstrap class (added after `'btn-'`) of table buttons.
+  Defines the class (added after `'btn-'`) of table buttons.
 
 - **Default:** `'secondary'`
+
+- **Example:** [Buttons Class](https://examples.bootstrap-table.com/#options/buttons-class.html)
 
 ## icons
 
@@ -1198,11 +1302,13 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
     toggleOff: 'fa-toggle-off',
     toggleOn: 'fa-toggle-on',
     columns: 'fa-th-list',
+    fullscreen: 'fa-arrows-alt',
     detailOpen: 'fa-plus',
-    detailClose: 'fa-minus',
-    fullscreen: 'fa-arrows-alt'
+    detailClose: 'fa-minus'
   }
   {% endhighlight %}
+
+- **Example:** [Table Icons](https://examples.bootstrap-table.com/#options/table-icons.html)
 
 ## iconSize
 
@@ -1212,9 +1318,11 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
 
 - **Detail:**
 
-  Defines icon size: `undefined` => `btnxs` => `btn-xssm` => `btn-smlg` => `btn-lg`
+  Defines icon size, `undefined`, `'lg'`, `'sm'` can be used.
 
 - **Default:** `undefined`
+
+- **Example:** [Icon Size](https://examples.bootstrap-table.com/#options/icon-size.html)
 
 ## iconsPrefix
 
@@ -1227,3 +1335,5 @@ The table options are defined in `jQuery.fn.bootstrapTable.defaults`.
   Defines icon set name (`'glyphicon'` or `'fa'` for FontAwesome). By default `'fa'` is used for Bootstrap v4.
 
 - **Default:** `'fa'`
+
+- **Example:** [Icons Prefix](https://examples.bootstrap-table.com/#options/icons-prefix.html)

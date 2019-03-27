@@ -285,7 +285,19 @@ $('#table').on('event-name.bs.table', function (e, arg1, arg2, ...) {
 
 - **Detail:**
 
-  Fires after the table header is rendered and availble in the DOM.
+  Fires after the table header is rendered and available in the DOM.
+
+## onPostFooter
+
+- **jQuery Event:** `post-footer.bs.table`
+
+- **Parameter:** `$tableFooter`
+
+- **Detail:**
+
+  Fires after the footer is rendered and available in the DOM, the parameters contain:
+
+  * `$tableFooter`: the DOM element of the footer.
 
 ## onExpandRow
 

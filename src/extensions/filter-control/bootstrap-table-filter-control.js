@@ -446,12 +446,11 @@
                   `.date-filter-control.bootstrap-table-filter-control-${field}`
                 )
                 .datepicker(filterDatepickerOptions)
-                .on('changeDate', ({ currentTarget }) => {
-                  $(currentTarget).val(
-                    currentTarget.value
-                  )
-                  // Fired the keyup event
-                  $(currentTarget).keyup()
+                .on('changeDate', (event) => {
+                  clearTimeout(event.currentTarget.timeoutId || 0)
+                  event.currentTarget.timeoutId = setTimeout(() => {
+                    that.onColumnSearch(event)
+                  }, that.options.searchTimeOut)
                 })
             }
           })
@@ -733,25 +732,13 @@
               }
 
               if ($.inArray(key, that.header.fields) !== -1) {
-                if (typeof value === 'string' || typeof value === 'number') {
+                if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
                   if (thisColumn.filterStrictSearch) {
-                    if (value.toString().toLowerCase() === fval.toString().toLowerCase()) {
-                      itemIsExpected.push(true)
-                    } else {
-                      itemIsExpected.push(false)
-                    }
+                    itemIsExpected.push(value.toString().toLowerCase() === fval.toString().toLowerCase())
                   } else if (thisColumn.filterStartsWithSearch) {
-                    if ((`${value}`).toLowerCase().indexOf(fval) === 0) {
-                      itemIsExpected.push(true)
-                    } else {
-                      itemIsExpected.push(false)
-                    }
+                    itemIsExpected.push((`${value}`).toLowerCase().indexOf(fval) === 0)
                   } else {
-                    if ((`${value}`).toLowerCase().includes(fval)) {
-                      itemIsExpected.push(true)
-                    } else {
-                      itemIsExpected.push(false)
-                    }
+                    itemIsExpected.push((`${value}`).toLowerCase().includes(fval))
                   }
                 }
               }
@@ -824,6 +811,10 @@
         $.each(that.options.valuesFilterControl, (i, item) => {
           hasValues = hasValues ? true : item.value !== ''
           item.value = ''
+        })
+
+        $.each(that.options.filterControls, (i, item) => {
+          item.text = ''
         })
 
         UtilsFilterControl.setValues(that)

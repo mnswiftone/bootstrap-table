@@ -1,13 +1,63 @@
 ChangeLog
 ---------
 
+### 1.15.0
+
+- **New(js):** Added support comparisons search(<, >, <=, =<, >=, =>).
+- **New(js):** Added `detailViewByClick` table option.
+- **New(js):** Added `showExtendedPagination` table option.
+- **New(js):** Added `totalNotFilteredField` table option.
+- **New(js):** Added `detailFormatter` column option.
+- **New(js):** Improved `filterBy` method with `or` condition and custom filter algorithm.
+- **New(js):** Improved `showColumn` and `hideColumn` methods with array of fields.
+- **New(js):** Improved scrollTo function to allow `rows` units.
+- **New(js):** Added `onPostFooter`(`post-footer.bs.table`) event.
+- **New(cell-input extension):** Added cell-input extension.
+- **Update(js):** Improved `pageList` options to support localization.
+- **Update(js):** Fixed `smartDisplay` option pagination bug.
+- **Update(js):** Set the `totalRows` option always.
+- **Update(js):** Fixed toolbar dropdown button border bug.
+- **Update(js):** Improved table footer.
+- **Update(js):** Fixed data-* attribute is an object bug.
+- **Update(filter-control extension):** Fixed DatePicker of filter-control does not work bug.
+- **Update(multiple-sort extension):** Fixed multiple-sort does not work with data-query-params bug.
+- **Update(editable extension):** Updated parameters of `onEditableSave` to `field, row, rowIndex, oldValue, $el`.
+- **Update(editable extension):** Fixed editable rerender bug after saving data.
+- **Update(treegrid extension):** Fixed treegrid cannot work bug.
+
+### 1.14.2
+
+- **New(fixed-columns extension):** Added new version fixed-columns extension.
+- **New(js):** Updated the style of loading message.
+- **Update(js):** Updated refresh event params.
+- **Update(locale):** Updated all locale translation with English as default.
+- **Update(export extension):** Fixed export all rows to pdf bug.
+- **Update(export extension):** Disabled export button when exportDataType is 'selected' and selection empty.
+- **Update(addrbar extension):** Fixed addrbar extension remove hash from url bug.
+
+### 1.14.1
+
+- **New(css):** Added CSS Frameworks supported.
+- **New(css):** Added [Semantic UI](http://semantic-ui.com) theme.
+- **New(css):** Added [Bulma](http://bulma.io) theme.
+- **New(css):** Added [Materialize](https://materializecss.com/) theme.
+- **New(css):** Added [Foundation](https://foundation.zurb.com/) theme.
+- **New(js):** Added data attribute support for `ignoreClickToSelectOn` option.
+- **Update(js):** Fixed `detailView` find td elements bug.
+- **Update(js):** Fixed `showColumns` close dropdown bug when item label clicking.
+- **Update(js):** Fixed reset width error after `toggleFullscreen`.
+- **Update(js):** Fixed `cardview` click event bug.
+
 ### 1.13.5
 
 - **New(auto-refresh extension):** Rewrote auto-refresh extension to ES6.
 - **Update(js):** Fixed showFullscreen cannot work bug.
 - **Update(js):** Redefined customSearch option.
 - **Update(js):** Fixed show footer cannot work bug.
+- **Update(js):** Updated the parameter of `footerStyle`.
+- **Update(js):** Added classes supported for `footerStyle`.
 - **Update(js):** Fixed IE11 transform bug.
+- **Update(js):** Removed beginning and end whitespace from td.
 - **Update(export extension):** Fixed export selected bug.
 
 ### 1.13.4

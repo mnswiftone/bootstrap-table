@@ -5,13 +5,20 @@
 ($ => {
   $.fn.bootstrapTable.locales['fa-IR'] = {
     formatLoadingMessage () {
-      return 'در حال بارگذاری, لطفا صبر کنید...'
+      return 'در حال بارگذاری, لطفا صبر کنید'
     },
     formatRecordsPerPage (pageNumber) {
       return `${pageNumber} رکورد در صفحه`
     },
-    formatShowingRows (pageFrom, pageTo, totalRows) {
+    formatShowingRows (pageFrom, pageTo, totalRows, totalNotFiltered) {
+      if (totalNotFiltered !== undefined && totalNotFiltered > 0 && totalNotFiltered < totalRows) {
+        return `نمایش ${pageFrom} تا ${pageTo} از ${totalRows} ردیف (filtered from ${totalNotFiltered} total entries)`
+      }
+
       return `نمایش ${pageFrom} تا ${pageTo} از ${totalRows} ردیف`
+    },
+    formatDetailPagination (totalRows) {
+      return `Showing ${totalRows} rows`
     },
     formatSearch () {
       return 'جستجو'
@@ -31,8 +38,29 @@
     formatColumns () {
       return 'سطر ها'
     },
+    formatFullscreen () {
+      return 'Fullscreen'
+    },
     formatAllRows () {
       return 'همه'
+    },
+    formatAutoRefresh () {
+      return 'Auto Refresh'
+    },
+    formatExport () {
+      return 'Export data'
+    },
+    formatClearFilters () {
+      return 'Clear filters'
+    },
+    formatJumpto () {
+      return 'GO'
+    },
+    formatAdvancedSearch () {
+      return 'Advanced search'
+    },
+    formatAdvancedCloseButton () {
+      return 'Close'
     }
   }
 

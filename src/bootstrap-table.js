@@ -1,6 +1,6 @@
 /**
  * @author zhixin wen <wenzhixin2010@gmail.com>
- * version: 1.13.4
+ * version: 1.14.2
  * https://github.com/wenzhixin/bootstrap-table/
  */
 
@@ -8,7 +8,7 @@
   // TOOLS DEFINITION
   // ======================
 
-  let bootstrapVersion = 3
+  let bootstrapVersion = 4
   try {
     const rawVersion = $.fn.dropdown.Constructor.VERSION
 
@@ -21,8 +21,9 @@
     // ignore
   }
 
-  const bootstrap = {
+  const constants = {
     3: {
+      theme: 'bootstrap3',
       iconsPrefix: 'glyphicon',
       icons: {
         paginationSwitchDown: 'glyphicon-collapse-down icon-chevron-down',
@@ -36,17 +37,31 @@
         fullscreen: 'glyphicon-fullscreen'
       },
       classes: {
+        buttonsPrefix: 'btn',
         buttons: 'default',
-        pull: 'pull'
+        buttonsGroup: 'btn-group',
+        buttonsDropdown: 'btn-group',
+        pull: 'pull',
+        inputGroup: '',
+        input: 'form-control',
+        paginationDropdown: 'btn-group dropdown',
+        dropup: 'dropup',
+        dropdownActive: 'active',
+        paginationActive: 'active'
       },
       html: {
         toobarDropdow: ['<ul class="dropdown-menu" role="menu">', '</ul>'],
         toobarDropdowItem: '<li role="menuitem"><label>%s</label></li>',
         pageDropdown: ['<ul class="dropdown-menu" role="menu">', '</ul>'],
-        pageDropdownItem: '<li role="menuitem" class="%s"><a href="#">%s</a></li>'
+        pageDropdownItem: '<li role="menuitem" class="%s"><a href="#">%s</a></li>',
+        dropdownCaret: '<span class="caret"></span>',
+        pagination: ['<ul class="pagination%s">', '</ul>'],
+        paginationItem: '<li class="page-item%s"><a class="page-link" href="#">%s</a></li>',
+        icon: '<i class="%s %s"></i>'
       }
     },
     4: {
+      theme: 'bootstrap4',
       iconsPrefix: 'fa',
       icons: {
         paginationSwitchDown: 'fa-caret-square-down',
@@ -55,19 +70,32 @@
         toggleOff: 'fa-toggle-off',
         toggleOn: 'fa-toggle-on',
         columns: 'fa-th-list',
+        fullscreen: 'fa-arrows-alt',
         detailOpen: 'fa-plus',
-        detailClose: 'fa-minus',
-        fullscreen: 'fa-arrows-alt'
+        detailClose: 'fa-minus'
       },
       classes: {
+        buttonsPrefix: 'btn',
         buttons: 'secondary',
-        pull: 'float'
+        buttonsGroup: 'btn-group',
+        buttonsDropdown: 'btn-group',
+        pull: 'float',
+        inputGroup: '',
+        input: 'form-control',
+        paginationDropdown: 'btn-group dropdown',
+        dropup: 'dropup',
+        dropdownActive: 'active',
+        paginationActive: 'active'
       },
       html: {
         toobarDropdow: ['<div class="dropdown-menu dropdown-menu-right">', '</div>'],
         toobarDropdowItem: '<label class="dropdown-item">%s</label>',
         pageDropdown: ['<div class="dropdown-menu">', '</div>'],
-        pageDropdownItem: '<a class="dropdown-item %s" href="#">%s</a>'
+        pageDropdownItem: '<a class="dropdown-item %s" href="#">%s</a>',
+        dropdownCaret: '<span class="caret"></span>',
+        pagination: ['<ul class="pagination%s">', '</ul>'],
+        paginationItem: '<li class="page-item%s"><a class="page-link" href="#">%s</a></li>',
+        icon: '<i class="%s %s"></i>'
       }
     }
   }[bootstrapVersion]
@@ -90,6 +118,14 @@
         return arg
       })
       return flag ? str : ''
+    },
+
+    isEmptyObject (obj = {}) {
+      return Object.entries(obj).length === 0 && obj.constructor === Object
+    },
+
+    isNumeric (n) {
+      return !isNaN(parseFloat(n)) && isFinite(n)
     },
 
     getFieldTitle (list, value) {
@@ -265,6 +301,54 @@
         }
       }
       return -1
+    },
+
+    trToData (columns, $els) {
+      const data = []
+      const m = []
+
+      $els.each((y, el) => {
+        const row = {}
+
+        // save tr's id, class and data-* attributes
+        row._id = $(el).attr('id')
+        row._class = $(el).attr('class')
+        row._data = this.getRealDataAttr($(el).data())
+
+        $(el).find('>td,>th').each((_x, el) => {
+          const cspan = +$(el).attr('colspan') || 1
+          const rspan = +$(el).attr('rowspan') || 1
+          let x = _x
+
+          // skip already occupied cells in current row
+          for (; m[y] && m[y][x]; x++) {
+            // ignore
+          }
+
+          // mark matrix elements occupied by current cell with true
+          for (let tx = x; tx < x + cspan; tx++) {
+            for (let ty = y; ty < y + rspan; ty++) {
+              if (!m[ty]) { // fill missing rows
+                m[ty] = []
+              }
+              m[ty][tx] = true
+            }
+          }
+
+          const field = columns[x].field
+
+          row[field] = $(el).html().trim()
+          // save td's id, class and data-* attributes
+          row[`_${field}_id`] = $(el).attr('id')
+          row[`_${field}_class`] = $(el).attr('class')
+          row[`_${field}_rowspan`] = $(el).attr('rowspan')
+          row[`_${field}_colspan`] = $(el).attr('colspan')
+          row[`_${field}_title`] = $(el).attr('title')
+          row[`_${field}_data`] = this.getRealDataAttr($(el).data())
+        })
+        data.push(row)
+      })
+      return data
     }
   }
 
@@ -310,12 +394,15 @@
       return res
     },
     totalField: 'total',
+    totalNotFilteredField: 'totalNotFiltered',
     dataField: 'rows',
     pagination: false,
     onlyInfoPagination: false,
+    showExtendedPagination: false,
     paginationLoop: true,
     sidePagination: 'client', // client or server
     totalRows: 0,
+    totalNotFiltered: 0,
     pageNumber: 1,
     pageSize: 10,
     pageList: [10, 25, 50, 100],
@@ -348,16 +435,10 @@
     showFullscreen: false,
     smartDisplay: true,
     escape: false,
+    filterOptions: {
+      'filterAlgorithm': 'and' // and means all given filter must match, or means one of the given filter must match
+    },
     idField: undefined,
-    uniqueId: undefined,
-    cardView: false,
-    detailView: false,
-    detailFormatter (index, row) {
-      return ''
-    },
-    detailFilter (index, row) {
-      return true
-    },
     selectItemName: 'btSelectItem',
     clickToSelect: false,
     ignoreClickToSelectOn ({tagName}) {
@@ -366,14 +447,25 @@
     singleSelect: false,
     checkboxHeader: true,
     maintainSelected: false,
+    uniqueId: undefined,
+    cardView: false,
+    detailView: false,
+    detailViewByClick: false,
+    detailFormatter (index, row) {
+      return ''
+    },
+    detailFilter (index, row) {
+      return true
+    },
     toolbar: undefined,
     toolbarAlign: 'left',
     buttonsToolbar: undefined,
     buttonsAlign: 'right',
-    buttonsClass: bootstrap.classes.buttons,
-    icons: bootstrap.icons,
+    buttonsPrefix: constants.classes.buttonsPrefix,
+    buttonsClass: constants.classes.buttons,
+    icons: constants.icons,
     iconSize: undefined,
-    iconsPrefix: bootstrap.iconsPrefix, // glyphicon or fa(font-awesome)
+    iconsPrefix: constants.iconsPrefix, // glyphicon or fa(font-awesome)
     onAll (name, args) {
       return false
     },
@@ -437,6 +529,9 @@
     onPostHeader () {
       return false
     },
+    onPostFooter () {
+      return false
+    },
     onExpandRow (index, row, $detail) {
       return false
     },
@@ -460,16 +555,20 @@
   const LOCALES = {}
   LOCALES['en-US'] = LOCALES.en = {
     formatLoadingMessage () {
-      return 'Loading, please wait...'
+      return 'Loading, please wait'
     },
     formatRecordsPerPage (pageNumber) {
-      return Utils.sprintf('%s rows per page', pageNumber)
+      return `${pageNumber} rows per page`
     },
-    formatShowingRows (pageFrom, pageTo, totalRows) {
-      return Utils.sprintf('Showing %s to %s of %s rows', pageFrom, pageTo, totalRows)
+    formatShowingRows (pageFrom, pageTo, totalRows, totalNotFiltered) {
+      if (totalNotFiltered !== undefined && totalNotFiltered > 0 && totalNotFiltered < totalRows) {
+        return `Showing ${pageFrom} to ${pageTo} of ${totalRows} rows (filtered from ${totalNotFiltered} total entries)`
+      }
+
+      return `Showing ${pageFrom} to ${pageTo} of ${totalRows} rows`
     },
     formatDetailPagination (totalRows) {
-      return Utils.sprintf('Showing %s rows', totalRows)
+      return `Showing ${totalRows} rows`
     },
     formatSearch () {
       return 'Search'
@@ -486,11 +585,11 @@
     formatToggle () {
       return 'Toggle'
     },
-    formatFullscreen () {
-      return 'Fullscreen'
-    },
     formatColumns () {
       return 'Columns'
+    },
+    formatFullscreen () {
+      return 'Fullscreen'
     },
     formatAllRows () {
       return 'All'
@@ -500,34 +599,37 @@
   $.extend(DEFAULTS, LOCALES['en-US'])
 
   const COLUMN_DEFAULTS = {
-    radio: false,
-    checkbox: false,
-    checkboxEnabled: true,
     field: undefined,
     title: undefined,
     titleTooltip: undefined,
     'class': undefined,
+    width: undefined,
+    rowspan: undefined,
+    colspan: undefined,
     align: undefined, // left, right, center
     halign: undefined, // left, right, center
     falign: undefined, // left, right, center
     valign: undefined, // top, middle, bottom
-    width: undefined,
+    cellStyle: undefined,
+    radio: false,
+    checkbox: false,
+    checkboxEnabled: true,
+    clickToSelect: true,
+    showSelectTitle: false,
     sortable: false,
+    sortName: undefined,
     order: 'asc', // asc, desc
+    sorter: undefined,
     visible: true,
     switchable: true,
-    clickToSelect: true,
+    cardVisible: true,
+    searchable: true,
     formatter: undefined,
     footerFormatter: undefined,
-    events: undefined,
-    sorter: undefined,
-    sortName: undefined,
-    cellStyle: undefined,
-    searchable: true,
+    detailFormatter: undefined,
     searchFormatter: true,
-    cardVisible: true,
     escape: false,
-    showSelectTitle: false
+    events: undefined
   }
 
   const EVENTS = {
@@ -552,6 +654,7 @@
     'pre-body.bs.table': 'onPreBody',
     'post-body.bs.table': 'onPostBody',
     'post-header.bs.table': 'onPostHeader',
+    'post-footer.bs.table': 'onPostFooter',
     'expand-row.bs.table': 'onExpandRow',
     'collapse-row.bs.table': 'onCollapseRow',
     'refresh-options.bs.table': 'onRefreshOptions',
@@ -572,18 +675,30 @@
     }
 
     init () {
+      this.initConstants()
       this.initLocale()
       this.initContainer()
       this.initTable()
       this.initHeader()
       this.initData()
       this.initHiddenRows()
-      this.initFooter()
       this.initToolbar()
       this.initPagination()
       this.initBody()
       this.initSearchText()
       this.initServer()
+    }
+
+    initConstants () {
+      const o = this.options
+      this.constants = constants
+
+      const buttonsPrefix = o.buttonsPrefix ? o.buttonsPrefix + '-' : ''
+      this.constants.buttonsClass = [
+        o.buttonsPrefix,
+        buttonsPrefix + o.buttonsClass,
+        Utils.sprintf(`${buttonsPrefix}%s`, o.iconSize)
+      ].join(' ').trim()
     }
 
     initLocale () {
@@ -620,7 +735,10 @@
         <div class="fixed-table-header"><table></table></div>
         <div class="fixed-table-body">
         <div class="fixed-table-loading">
-        ${this.options.formatLoadingMessage()}
+        <span class="loading-wrap">
+        <span class="loading-text">${this.options.formatLoadingMessage()}</span>
+        <span class="animation-wrap"><span class="animation-dot"></span></span>
+        </span>
         </div>
         </div>
         <div class="fixed-table-footer"><table><thead><tr></tr></thead></table></div>
@@ -634,7 +752,7 @@
       this.$tableHeader = this.$container.find('.fixed-table-header')
       this.$tableBody = this.$container.find('.fixed-table-body')
       this.$tableLoading = this.$container.find('.fixed-table-loading')
-      this.$tableFooter = this.$container.find('.fixed-table-footer')
+      this.$tableFooter = this.$el.find('tfoot')
       // checking if custom table-toolbar exists or not
       if (this.options.buttonsToolbar) {
         this.$toolbar = $('body').find(this.options.buttonsToolbar)
@@ -647,6 +765,7 @@
       this.$container.after('<div class="clearfix"></div>')
 
       this.$el.addClass(this.options.classes)
+      this.$tableLoading.addClass(this.options.classes)
 
       if (this.options.height) {
         this.$tableContainer.addClass('fixed-height')
@@ -660,6 +779,8 @@
           this.$tableBorder = this.$tableBody.find('.fixed-table-border')
           this.$tableLoading.addClass('fixed-table-border')
         }
+
+        this.$tableFooter = this.$container.find('.fixed-table-footer')
       }
     }
 
@@ -715,56 +836,23 @@
         })
       })
 
-      // if options.data is setting, do not process tbody data
-      if (this.options.data.length) {
-        return
+      // if options.data is setting, do not process tbody and tfoot data
+      if (!this.options.data.length) {
+        this.options.data = Utils.trToData(this.columns, this.$el.find('>tbody>tr'))
+        if (data.length) {
+          this.fromHtml = true
+        }
       }
 
-      const m = []
-      this.$el.find('>tbody>tr').each((y, el) => {
-        const row = {}
+      this.footerData = Utils.trToData(this.columns, this.$el.find('>tfoot>tr'))
+      if (this.footerData) {
+        this.$el.find('tfoot').html('<tr></tr>')
+      }
 
-        // save tr's id, class and data-* attributes
-        row._id = $(el).attr('id')
-        row._class = $(el).attr('class')
-        row._data = Utils.getRealDataAttr($(el).data())
-
-        $(el).find('>td').each((_x, el) => {
-          const cspan = +$(el).attr('colspan') || 1
-          const rspan = +$(el).attr('rowspan') || 1
-          let x = _x
-
-          // skip already occupied cells in current row
-          for (; m[y] && m[y][x]; x++) {
-            // ignore
-          }
-
-          // mark matrix elements occupied by current cell with true
-          for (let tx = x; tx < x + cspan; tx++) {
-            for (let ty = y; ty < y + rspan; ty++) {
-              if (!m[ty]) { // fill missing rows
-                m[ty] = []
-              }
-              m[ty][tx] = true
-            }
-          }
-
-          const field = this.columns[x].field
-
-          row[field] = $(el).html()
-          // save td's id, class and data-* attributes
-          row[`_${field}_id`] = $(el).attr('id')
-          row[`_${field}_class`] = $(el).attr('class')
-          row[`_${field}_rowspan`] = $(el).attr('rowspan')
-          row[`_${field}_colspan`] = $(el).attr('colspan')
-          row[`_${field}_title`] = $(el).attr('title')
-          row[`_${field}_data`] = Utils.getRealDataAttr($(el).data())
-        })
-        data.push(row)
-      })
-      this.options.data = data
-      if (data.length) {
-        this.fromHtml = true
+      if (!this.options.showFooter || this.options.cardView) {
+        this.$tableFooter.hide()
+      } else {
+        this.$tableFooter.show()
       }
     }
 
@@ -777,6 +865,7 @@
         styles: [],
         classes: [],
         formatters: [],
+        detailFormatters: [],
         events: [],
         sorters: [],
         sortNames: [],
@@ -829,6 +918,7 @@
             this.header.styles[column.fieldIndex] = align + style
             this.header.classes[column.fieldIndex] = class_
             this.header.formatters[column.fieldIndex] = column.formatter
+            this.header.detailFormatters[column.fieldIndex] = column.detailFormatter
             this.header.events[column.fieldIndex] = column.events
             this.header.sorters[column.fieldIndex] = column.sorter
             this.header.sortNames[column.fieldIndex] = column.sortName
@@ -867,7 +957,7 @@
           if (column.checkbox) {
             text = ''
             if (!this.options.singleSelect && this.options.checkboxHeader) {
-              text = '<input name="btSelectAll" type="checkbox" />'
+              text = '<label><input name="btSelectAll" type="checkbox" /><span></span></label>'
             }
             this.header.stateField = column.field
           }
@@ -927,7 +1017,7 @@
         this.$tableLoading.css('top', this.$header.outerHeight() + 1)
         // Assign the correct sortable arrow
         this.getCaret()
-        $(window).on('resize.bootstrap-table', $.proxy(this.resetWidth, this))
+        $(window).on('resize.bootstrap-table', e => this.resetWidth(e))
       }
 
       this.$selectAll = this.$header.find('[name="btSelectAll"]')
@@ -936,14 +1026,6 @@
         this[checked ? 'checkAll' : 'uncheckAll']()
         this.updateSelected()
       })
-    }
-
-    initFooter () {
-      if (!this.options.showFooter || this.options.cardView) {
-        this.$tableFooter.hide()
-      } else {
-        this.$tableFooter.show()
-      }
     }
 
     initData (data, type) {
@@ -1014,7 +1096,7 @@
             }
 
             // IF both values are numeric, do a numeric comparison
-            if ($.isNumeric(aa) && $.isNumeric(bb)) {
+            if (Utils.isNumeric(aa) && Utils.isNumeric(bb)) {
               // Convert numerical values form string to float.
               aa = parseFloat(aa)
               bb = parseFloat(bb)
@@ -1088,6 +1170,7 @@
     }
 
     initToolbar () {
+      const o = this.options
       let html = []
       let timeoutId = 0
       let $keepOpen
@@ -1095,80 +1178,84 @@
       let switchableCount = 0
 
       if (this.$toolbar.find('.bs-bars').children().length) {
-        $('body').append($(this.options.toolbar))
+        $('body').append($(o.toolbar))
       }
       this.$toolbar.html('')
 
-      if (typeof this.options.toolbar === 'string' || typeof this.options.toolbar === 'object') {
-        $(Utils.sprintf('<div class="bs-bars %s-%s"></div>', bootstrap.classes.pull, this.options.toolbarAlign))
+      if (typeof o.toolbar === 'string' || typeof o.toolbar === 'object') {
+        $(Utils.sprintf('<div class="bs-bars %s-%s"></div>', this.constants.classes.pull, o.toolbarAlign))
           .appendTo(this.$toolbar)
-          .append($(this.options.toolbar))
+          .append($(o.toolbar))
       }
 
       // showColumns, showToggle, showRefresh
-      html = [Utils.sprintf('<div class="columns columns-%s btn-group %s-%s">',
-        this.options.buttonsAlign, bootstrap.classes.pull, this.options.buttonsAlign)]
+      html = [`<div class="${[
+        'columns',
+        `columns-${o.buttonsAlign}`,
+        this.constants.classes.buttonsGroup,
+        `${this.constants.classes.pull}-${o.buttonsAlign}`
+      ].join(' ')}">`]
 
-      if (typeof this.options.icons === 'string') {
-        this.options.icons = Utils.calculateObjectValue(null, this.options.icons)
+      if (typeof o.icons === 'string') {
+        o.icons = Utils.calculateObjectValue(null, o.icons)
       }
 
-      if (this.options.showPaginationSwitch) {
-        html.push(Utils.sprintf(`<button class="btn${Utils.sprintf(' btn-%s', this.options.buttonsClass)}${Utils.sprintf(' btn-%s', this.options.iconSize)}" type="button" name="paginationSwitch" aria-label="pagination Switch" title="%s">`,
-          this.options.formatPaginationSwitch()),
-        Utils.sprintf('<i class="%s %s"></i>', this.options.iconsPrefix, this.options.icons.paginationSwitchDown),
-        '</button>')
+      if (o.showPaginationSwitch) {
+        html.push(`<button class="${this.constants.buttonsClass}" type="button" name="paginationSwitch"
+          aria-label="Pagination Switch" title="${o.formatPaginationSwitch()}">
+          ${Utils.sprintf(this.constants.html.icon, o.iconsPrefix, o.icons.paginationSwitchDown)}
+          </button>`)
       }
 
-      if (this.options.showRefresh) {
-        html.push(Utils.sprintf(`<button class="btn${Utils.sprintf(' btn-%s', this.options.buttonsClass)}${Utils.sprintf(' btn-%s', this.options.iconSize)}" type="button" name="refresh" aria-label="refresh" title="%s">`,
-          this.options.formatRefresh()),
-        Utils.sprintf('<i class="%s %s"></i>', this.options.iconsPrefix, this.options.icons.refresh),
-        '</button>')
+      if (o.showRefresh) {
+        html.push(`<button class="${this.constants.buttonsClass}" type="button" name="refresh"
+          aria-label="Refresh" title="${o.formatRefresh()}">
+          ${Utils.sprintf(this.constants.html.icon, o.iconsPrefix, o.icons.refresh)}
+          </button>`)
       }
 
-      if (this.options.showToggle) {
-        html.push(Utils.sprintf(`<button class="btn${Utils.sprintf(' btn-%s', this.options.buttonsClass)}${Utils.sprintf(' btn-%s', this.options.iconSize)}" type="button" name="toggle" aria-label="toggle" title="%s">`,
-          this.options.formatToggle()),
-        Utils.sprintf('<i class="%s %s"></i>', this.options.iconsPrefix, this.options.icons.toggleOff),
-        '</button>')
+      if (o.showToggle) {
+        html.push(`<button class="${this.constants.buttonsClass}" type="button" name="toggle"
+          aria-label="Toggle" title="${o.formatToggle()}">
+          ${Utils.sprintf(this.constants.html.icon, o.iconsPrefix, o.icons.toggleOff)}
+          </button>`)
       }
 
-      if (this.options.showFullscreen) {
-        html.push(Utils.sprintf(`<button class="btn${Utils.sprintf(' btn-%s', this.options.buttonsClass)}${Utils.sprintf(' btn-%s', this.options.iconSize)}" type="button" name="fullscreen" aria-label="fullscreen" title="%s">`,
-          this.options.formatFullscreen()),
-        Utils.sprintf('<i class="%s %s"></i>', this.options.iconsPrefix, this.options.icons.fullscreen),
-        '</button>')
+      if (o.showFullscreen) {
+        html.push(`<button class="${this.constants.buttonsClass}" type="button" name="fullscreen"
+          aria-label="Fullscreen" title="${o.formatFullscreen()}">
+          ${Utils.sprintf(this.constants.html.icon, o.iconsPrefix, o.icons.fullscreen)}
+          </button>`)
       }
 
-      if (this.options.showColumns) {
-        html.push(Utils.sprintf('<div class="keep-open btn-group" title="%s">',
-          this.options.formatColumns()),
-        `<button type="button" aria-label="columns" class="btn${Utils.sprintf(' btn-%s', this.options.buttonsClass)}${Utils.sprintf(' btn-%s', this.options.iconSize)} dropdown-toggle" data-toggle="dropdown">`,
-        Utils.sprintf('<i class="%s %s"></i>', this.options.iconsPrefix, this.options.icons.columns),
-        ' <span class="caret"></span>',
-        '</button>',
-        bootstrap.html.toobarDropdow[0])
+      if (o.showColumns) {
+        html.push(`<div class="keep-open ${this.constants.classes.buttonsDropdown}" title="${o.formatColumns()}">
+          <button class="${this.constants.buttonsClass} dropdown-toggle" type="button" data-toggle="dropdown"
+          aria-label="Columns" title="${o.formatFullscreen()}">
+          ${Utils.sprintf(this.constants.html.icon, o.iconsPrefix, o.icons.columns)}
+          ${this.constants.html.dropdownCaret}
+          </button>
+          ${this.constants.html.toobarDropdow[0]}`)
 
         this.columns.forEach((column, i) => {
           if (column.radio || column.checkbox) {
             return
           }
 
-          if (this.options.cardView && !column.cardVisible) {
+          if (o.cardView && !column.cardVisible) {
             return
           }
 
           const checked = column.visible ? ' checked="checked"' : ''
 
           if (column.switchable) {
-            html.push(Utils.sprintf(bootstrap.html.toobarDropdowItem,
-              Utils.sprintf('<input type="checkbox" data-field="%s" value="%s"%s> %s',
+            html.push(Utils.sprintf(this.constants.html.toobarDropdowItem,
+              Utils.sprintf('<input type="checkbox" data-field="%s" value="%s"%s> <span>%s</span>',
                 column.field, i, checked, column.title)))
             switchableCount++
           }
         })
-        html.push(bootstrap.html.toobarDropdow[1], '</div>')
+        html.push(this.constants.html.toobarDropdow[1], '</div>')
       }
 
       html.push('</div>')
@@ -1178,36 +1265,36 @@
         this.$toolbar.append(html.join(''))
       }
 
-      if (this.options.showPaginationSwitch) {
+      if (o.showPaginationSwitch) {
         this.$toolbar.find('button[name="paginationSwitch"]')
-          .off('click').on('click', $.proxy(this.togglePagination, this))
+          .off('click').on('click', () => this.togglePagination())
       }
 
-      if (this.options.showFullscreen) {
+      if (o.showFullscreen) {
         this.$toolbar.find('button[name="fullscreen"]')
-          .off('click').on('click', $.proxy(this.toggleFullscreen, this))
+          .off('click').on('click', () => this.toggleFullscreen())
       }
 
-      if (this.options.showRefresh) {
+      if (o.showRefresh) {
         this.$toolbar.find('button[name="refresh"]')
-          .off('click').on('click', $.proxy(this.refresh, this))
+          .off('click').on('click', () => this.refresh())
       }
 
-      if (this.options.showToggle) {
+      if (o.showToggle) {
         this.$toolbar.find('button[name="toggle"]')
           .off('click').on('click', () => {
             this.toggleView()
           })
       }
 
-      if (this.options.showColumns) {
+      if (o.showColumns) {
         $keepOpen = this.$toolbar.find('.keep-open')
 
-        if (switchableCount <= this.options.minimumCountColumns) {
+        if (switchableCount <= o.minimumCountColumns) {
           $keepOpen.find('input').prop('disabled', true)
         }
 
-        $keepOpen.find('li').off('click').on('click', e => {
+        $keepOpen.find('li, label').off('click').on('click', e => {
           e.stopImmediatePropagation()
         })
         $keepOpen.find('input').off('click').on('click', ({currentTarget}) => {
@@ -1218,18 +1305,17 @@
         })
       }
 
-      if (this.options.search) {
+      if (o.search) {
         html = []
-        html.push(
-          Utils.sprintf('<div class="%s-%s search">', bootstrap.classes.pull, this.options.searchAlign),
-          Utils.sprintf(`<input class="form-control${Utils.sprintf(' input-%s', this.options.iconSize)}" type="text" placeholder="%s">`,
-            this.options.formatSearch()),
-          '</div>')
+        html.push(`<div class="${this.constants.classes.pull}-${o.searchAlign} search ${this.constants.classes.inputGroup}">
+          <input class="${this.constants.classes.input}${Utils.sprintf(' input-%s', o.iconSize)}"
+          type="text" placeholder="${o.formatSearch()}">
+          </div>`)
 
         this.$toolbar.append(html.join(''))
         $search = this.$toolbar.find('.search input')
         $search.off('keyup drop blur').on('keyup drop blur', event => {
-          if (this.options.searchOnEnterKey && event.keyCode !== 13) {
+          if (o.searchOnEnterKey && event.keyCode !== 13) {
             return
           }
 
@@ -1240,7 +1326,7 @@
           clearTimeout(timeoutId) // doesn't matter if it's 0
           timeoutId = setTimeout(() => {
             this.onSearch(event)
-          }, this.options.searchTimeOut)
+          }, o.searchTimeOut)
         })
 
         if (Utils.isIEBrowser()) {
@@ -1248,14 +1334,14 @@
             clearTimeout(timeoutId) // doesn't matter if it's 0
             timeoutId = setTimeout(() => {
               this.onSearch(event)
-            }, this.options.searchTimeOut)
+            }, o.searchTimeOut)
           })
         }
       }
     }
 
     onSearch ({currentTarget, firedByInitSearchText}) {
-      const text = $.trim($(currentTarget).val())
+      const text = $(currentTarget).val().trim()
 
       // trim search input
       if (this.options.trimOnSearch && $(currentTarget).val() !== text) {
@@ -1283,6 +1369,7 @@
     }
 
     initSearch () {
+      this.filterOptions = this.filterOptions || this.options.filterOptions
       if (this.options.sidePagination !== 'server') {
         if (this.options.customSearch) {
           this.data = Utils.calculateObjectValue(this.options, this.options.customSearch,
@@ -1292,22 +1379,46 @@
 
         const s = this.searchText && (this.options.escape
           ? Utils.escapeHTML(this.searchText) : this.searchText).toLowerCase()
-        const f = $.isEmptyObject(this.filterColumns) ? null : this.filterColumns
+        const f = Utils.isEmptyObject(this.filterColumns) ? null : this.filterColumns
 
         // Check filter
-        this.data = f ? this.options.data.filter((item, i) => {
-          for (const key in f) {
-            if (
-              (Array.isArray(f[key]) &&
-              !f[key].includes(item[key])) ||
-              (!Array.isArray(f[key]) &&
-              item[key] !== f[key])
-            ) {
-              return false
+        if (typeof this.filterOptions.filterAlgorithm === 'function') {
+          this.data = this.options.data.filter((item, i) => {
+            return this.filterOptions.filterAlgorithm.apply(null, [item, f])
+          })
+        } else if (typeof this.filterOptions.filterAlgorithm === 'string') {
+          this.data = f ? this.options.data.filter((item, i) => {
+            const filterAlgorithm = this.filterOptions.filterAlgorithm
+            if (filterAlgorithm === 'and') {
+              for (const key in f) {
+                if (
+                  (Array.isArray(f[key]) &&
+                        !f[key].includes(item[key])) ||
+                    (!Array.isArray(f[key]) &&
+                        item[key] !== f[key])
+                ) {
+                  return false
+                }
+              }
+            } else if (filterAlgorithm === 'or') {
+              let match = false
+              for (const key in f) {
+                if (
+                  (Array.isArray(f[key]) &&
+                        f[key].includes(item[key])) ||
+                    (!Array.isArray(f[key]) &&
+                        item[key] === f[key])
+                ) {
+                  match = true
+                }
+              }
+
+              return match
             }
-          }
-          return true
-        }) : this.options.data
+
+            return true
+          }) : this.options.data
+        }
 
         this.data = s ? this.data.filter((item, i) => {
           for (let j = 0; j < this.header.fields.length; j++) {
@@ -1315,7 +1426,7 @@
               continue
             }
 
-            const key = $.isNumeric(this.header.fields[j]) ? parseInt(this.header.fields[j], 10) : this.header.fields[j]
+            const key = Utils.isNumeric(this.header.fields[j]) ? parseInt(this.header.fields[j], 10) : this.header.fields[j]
             const column = this.columns[this.fieldsColumnsIndex[key]]
             let value
 
@@ -1334,7 +1445,7 @@
             // Fix #142: respect searchForamtter boolean
             if (column && column.searchFormatter) {
               value = Utils.calculateObjectValue(column,
-                this.header.formatters[j], [value, item, i], value)
+                this.header.formatters[j], [value, item, i, column.field], value)
             }
 
             if (typeof value === 'string' || typeof value === 'number') {
@@ -1343,7 +1454,43 @@
                   return true
                 }
               } else {
-                if ((`${value}`).toLowerCase().includes(s)) {
+                const largerSmallerEqualsRegex = /(?:(<=|=>|=<|>=|>|<)(?:\s+)?(\d+)?|(\d+)?(\s+)?(<=|=>|=<|>=|>|<))/gm
+                const matches = largerSmallerEqualsRegex.exec(s)
+                let comparisonCheck = false
+
+                if (matches) {
+                  const operator = matches[1] || matches[5] + 'l'
+                  const comparisonValue = matches[2] || matches[3]
+                  const int = parseInt(value, 10)
+                  const comparisonInt = parseInt(comparisonValue, 10)
+
+                  switch (operator) {
+                    case '>':
+                    case '<l':
+                      comparisonCheck = int > comparisonInt
+                      break
+                    case '<':
+                    case '>l':
+                      comparisonCheck = int < comparisonInt
+                      break
+                    case '<=':
+                    case '=<':
+                    case '>=l':
+                    case '=>l':
+                      comparisonCheck = int <= comparisonInt
+                      break
+                    case '>=':
+                    case '=>':
+                    case '<=l':
+                    case '=<l':
+                      comparisonCheck = int >= comparisonInt
+                      break
+                    default:
+                      break
+                  }
+                }
+
+                if (comparisonCheck || (`${value}`).toLowerCase().includes(s)) {
                   return true
                 }
               }
@@ -1355,7 +1502,8 @@
     }
 
     initPagination () {
-      if (!this.options.pagination) {
+      const o = this.options
+      if (!o.pagination) {
         this.$pagination.hide()
         return
       }
@@ -1371,118 +1519,119 @@
       let $next
       let $number
       const data = this.getData()
-      let pageList = this.options.pageList
+      let pageList = o.pageList
 
-      if (this.options.sidePagination !== 'server') {
-        this.options.totalRows = data.length
+      if (o.sidePagination !== 'server') {
+        o.totalRows = data.length
       }
 
       this.totalPages = 0
-      if (this.options.totalRows) {
-        if (this.options.pageSize === this.options.formatAllRows()) {
-          this.options.pageSize = this.options.totalRows
+      if (o.totalRows) {
+        if (o.pageSize === o.formatAllRows()) {
+          o.pageSize = o.totalRows
           $allSelected = true
-        } else if (this.options.pageSize === this.options.totalRows) {
+        } else if (o.pageSize === o.totalRows) {
           // Fix #667 Table with pagination,
           // multiple pages and a search this matches to one page throws exception
-          const pageLst = typeof this.options.pageList === 'string'
-            ? this.options.pageList.replace('[', '').replace(']', '')
-              .replace(/ /g, '').toLowerCase().split(',') : this.options.pageList
-          if (pageLst.includes(this.options.formatAllRows().toLowerCase())) {
+          const pageLst = typeof o.pageList === 'string'
+            ? o.pageList.replace('[', '').replace(']', '')
+              .replace(/ /g, '').toLowerCase().split(',') : o.pageList
+          if (pageLst.includes(o.formatAllRows().toLowerCase())) {
             $allSelected = true
           }
         }
 
-        this.totalPages = ~~((this.options.totalRows - 1) / this.options.pageSize) + 1
+        this.totalPages = ~~((o.totalRows - 1) / o.pageSize) + 1
 
-        this.options.totalPages = this.totalPages
+        o.totalPages = this.totalPages
       }
-      if (this.totalPages > 0 && this.options.pageNumber > this.totalPages) {
-        this.options.pageNumber = this.totalPages
-      }
-
-      this.pageFrom = (this.options.pageNumber - 1) * this.options.pageSize + 1
-      this.pageTo = this.options.pageNumber * this.options.pageSize
-      if (this.pageTo > this.options.totalRows) {
-        this.pageTo = this.options.totalRows
+      if (this.totalPages > 0 && o.pageNumber > this.totalPages) {
+        o.pageNumber = this.totalPages
       }
 
-      html.push(
-        Utils.sprintf('<div class="%s-%s pagination-detail">', bootstrap.classes.pull, this.options.paginationDetailHAlign),
-        '<span class="pagination-info">',
-        this.options.onlyInfoPagination ? this.options.formatDetailPagination(this.options.totalRows)
-          : this.options.formatShowingRows(this.pageFrom, this.pageTo, this.options.totalRows),
-        '</span>')
+      this.pageFrom = (o.pageNumber - 1) * o.pageSize + 1
+      this.pageTo = o.pageNumber * o.pageSize
+      if (this.pageTo > o.totalRows) {
+        this.pageTo = o.totalRows
+      }
 
-      if (!this.options.onlyInfoPagination) {
+      if (this.options.pagination && this.options.sidePagination !== 'server') {
+        this.options.totalNotFiltered = this.options.data.length
+      }
+
+      if (!this.options.showExtendedPagination) {
+        this.options.totalNotFiltered = undefined
+      }
+
+      const paginationInfo = o.onlyInfoPagination ?
+        o.formatDetailPagination(o.totalRows) :
+        o.formatShowingRows(this.pageFrom, this.pageTo, o.totalRows, o.totalNotFiltered)
+
+      html.push(`<div class="${this.constants.classes.pull}-${o.paginationDetailHAlign} pagination-detail">
+        <span class="pagination-info">
+        ${paginationInfo}
+        </span>`)
+
+      if (!o.onlyInfoPagination) {
         html.push('<span class="page-list">')
 
         const pageNumber = [
-          Utils.sprintf('<span class="btn-group %s">',
-            this.options.paginationVAlign === 'top' || this.options.paginationVAlign === 'both'
-              ? 'dropdown' : 'dropup'),
-          `<button type="button" class="btn${Utils.sprintf(' btn-%s', this.options.buttonsClass)}${Utils.sprintf(' btn-%s', this.options.iconSize)} dropdown-toggle" data-toggle="dropdown">`,
-          '<span class="page-size">',
-          $allSelected ? this.options.formatAllRows() : this.options.pageSize,
-          '</span>',
-          ' <span class="caret"></span>',
-          '</button>',
-          bootstrap.html.pageDropdown[0]
-        ]
+          `<span class="${this.constants.classes.paginationDropdown}">
+          <button class="${this.constants.buttonsClass} dropdown-toggle" type="button" data-toggle="dropdown">
+          <span class="page-size">
+          ${$allSelected ? o.formatAllRows() : o.pageSize}
+          </span>
+          ${this.constants.html.dropdownCaret}
+          </button>
+          ${this.constants.html.pageDropdown[0]}`]
 
-        if (typeof this.options.pageList === 'string') {
-          const list = this.options.pageList.replace('[', '').replace(']', '')
+        if (typeof o.pageList === 'string') {
+          const list = o.pageList.replace('[', '').replace(']', '')
             .replace(/ /g, '').split(',')
 
           pageList = []
           for (const value of list) {
             pageList.push(
-              (value.toUpperCase() === this.options.formatAllRows().toUpperCase() ||
-              value.toUpperCase() === 'UNLIMITED')
-                ? this.options.formatAllRows() : +value)
+              (value.toLowerCase() === o.formatAllRows().toLowerCase() ||
+              ['all', 'unlimited'].includes(value.toLowerCase()))
+                ? o.formatAllRows() : +value)
           }
         }
 
         pageList.forEach((page, i) => {
-          if (!this.options.smartDisplay || i === 0 || pageList[i - 1] < this.options.totalRows) {
+          if (!o.smartDisplay || i === 0 || pageList[i - 1] < o.totalRows) {
             let active
             if ($allSelected) {
-              active = page === this.options.formatAllRows() ? 'active' : ''
+              active = page === o.formatAllRows() ? this.constants.classes.dropdownActive : ''
             } else {
-              active = page === this.options.pageSize ? 'active' : ''
+              active = page === o.pageSize ? this.constants.classes.dropdownActive : ''
             }
-            pageNumber.push(Utils.sprintf(bootstrap.html.pageDropdownItem, active, page))
+            pageNumber.push(Utils.sprintf(this.constants.html.pageDropdownItem, active, page))
           }
         })
-        pageNumber.push(`${bootstrap.html.pageDropdown[1]}</span>`)
+        pageNumber.push(`${this.constants.html.pageDropdown[1]}</span>`)
 
-        html.push(this.options.formatRecordsPerPage(pageNumber.join('')))
-        html.push('</span>')
+        html.push(o.formatRecordsPerPage(pageNumber.join('')))
+        html.push('</span></div>')
 
-        html.push('</div>',
-          Utils.sprintf('<div class="%s-%s pagination">', bootstrap.classes.pull, this.options.paginationHAlign),
-          `<ul class="pagination${Utils.sprintf(' pagination-%s', this.options.iconSize)}">`,
-          Utils.sprintf('<li class="page-item page-pre"><a class="page-link" href="#">%s</a></li>',
-            this.options.paginationPreText))
+        html.push(`<div class="${this.constants.classes.pull}-${o.paginationHAlign} pagination">`,
+          Utils.sprintf(this.constants.html.pagination[0], Utils.sprintf(' pagination-%s', o.iconSize)),
+          Utils.sprintf(this.constants.html.paginationItem, ' page-pre', o.paginationPreText))
 
-        if (this.totalPages < this.options.paginationSuccessivelySize) {
+        if (this.totalPages < o.paginationSuccessivelySize) {
           from = 1
           to = this.totalPages
         } else {
-          from = this.options.pageNumber - this.options.paginationPagesBySide
-          to = from + (this.options.paginationPagesBySide * 2)
+          from = o.pageNumber - o.paginationPagesBySide
+          to = from + (o.paginationPagesBySide * 2)
         }
 
-        if (this.options.pageNumber < (this.options.paginationSuccessivelySize - 1)) {
-          to = this.options.paginationSuccessivelySize
+        if (o.pageNumber < (o.paginationSuccessivelySize - 1)) {
+          to = o.paginationSuccessivelySize
         }
 
-        if (to > this.totalPages) {
-          to = this.totalPages
-        }
-
-        if (this.options.paginationSuccessivelySize > this.totalPages - from) {
-          from = from - (this.options.paginationSuccessivelySize - (this.totalPages - from)) + 1
+        if (o.paginationSuccessivelySize > this.totalPages - from) {
+          from = from - (o.paginationSuccessivelySize - (this.totalPages - from)) + 1
         }
 
         if (from < 1) {
@@ -1493,15 +1642,14 @@
           to = this.totalPages
         }
 
-        const middleSize = Math.round(this.options.paginationPagesBySide / 2)
-        const pageItem = (i, classes = '') => `
-          <li class="page-item${classes}${i === this.options.pageNumber ? ' active' : ''}">
-            <a class="page-link" href="#">${i}</a>
-          </li>
-        `
+        const middleSize = Math.round(o.paginationPagesBySide / 2)
+        const pageItem = (i, classes = '') => {
+          return Utils.sprintf(this.constants.html.paginationItem,
+            classes + (i === o.pageNumber ? ` ${this.constants.classes.paginationActive}` : ''), i)
+        }
 
         if (from > 1) {
-          let max = this.options.paginationPagesBySide
+          let max = o.paginationPagesBySide
           if (max >= from) max = from - 1
           for (i = 1; i <= max; i++) {
             html.push(pageItem(i))
@@ -1512,17 +1660,14 @@
           } else {
             if ((from - 1) > max) {
               if (
-                (from - this.options.paginationPagesBySide * 2) > this.options.paginationPagesBySide &&
-                this.options.paginationUseIntermediate
+                (from - o.paginationPagesBySide * 2) > o.paginationPagesBySide &&
+                o.paginationUseIntermediate
               ) {
                 i = Math.round(((from - middleSize) / 2) + middleSize)
                 html.push(pageItem(i, ' page-intermediate'))
               } else {
-                html.push(`
-                  <li class="page-item page-first-separator disabled">
-                    <a class="page-link" href="#">...</a>
-                  </li>`
-                )
+                html.push(Utils.sprintf(this.constants.html.paginationItem,
+                  ' page-first-separator disabled', '...'))
               }
             }
           }
@@ -1533,7 +1678,7 @@
         }
 
         if (this.totalPages > to) {
-          let min = this.totalPages - (this.options.paginationPagesBySide - 1)
+          let min = this.totalPages - (o.paginationPagesBySide - 1)
           if (to >= min) min = to + 1
           if ((to + 1) === min - 1) {
             i = to + 1
@@ -1541,17 +1686,14 @@
           } else {
             if (min > (to + 1)) {
               if (
-                (this.totalPages - to) > this.options.paginationPagesBySide * 2 &&
-                this.options.paginationUseIntermediate
+                (this.totalPages - to) > o.paginationPagesBySide * 2 &&
+                o.paginationUseIntermediate
               ) {
                 i = Math.round(((this.totalPages - middleSize - to) / 2) + to)
                 html.push(pageItem(i, ' page-intermediate'))
               } else {
-                html.push(`
-                  <li class="page-item page-last-separator disabled">
-                    <a class="page-link" href="#">...</a>
-                  </li>`
-                )
+                html.push(Utils.sprintf(this.constants.html.paginationItem,
+                  ' page-last-separator disabled', '...'))
               }
             }
           }
@@ -1561,51 +1703,51 @@
           }
         }
 
-        html.push(`
-          <li class="page-item page-next">
-          <a class="page-link" href="#">${this.options.paginationNextText}</a>
-          </li>
-          </ul>
-          </div>
-        `)
+        html.push(Utils.sprintf(this.constants.html.paginationItem, ' page-next', o.paginationNextText))
+        html.push(this.constants.html.pagination[1], '</div>')
       }
       this.$pagination.html(html.join(''))
 
-      if (!this.options.onlyInfoPagination) {
+      const dropupClass = ['bottom', 'both'].includes(o.paginationVAlign) ?
+        ` ${this.constants.classes.dropup}` : ''
+      this.$pagination.last().find('.page-list > span').addClass(dropupClass)
+
+      if (!o.onlyInfoPagination) {
         $pageList = this.$pagination.find('.page-list a')
         $pre = this.$pagination.find('.page-pre')
         $next = this.$pagination.find('.page-next')
-        $number = this.$pagination.find('.page-item').not('.page-next, .page-pre')
+        $number = this.$pagination.find('.page-item').not('.page-next, .page-pre, .page-last-separator, .page-first-separator')
 
-        if (this.options.smartDisplay) {
-          if (this.totalPages <= 1) {
-            this.$pagination.find('div.pagination').hide()
-          }
-          if (pageList.length < 2 || this.options.totalRows <= pageList[0]) {
-            this.$pagination.find('span.page-list').hide()
-          }
-
-          // when data is empty, hide the pagination
-          this.$pagination[this.getData().length ? 'show' : 'hide']()
+        if (this.totalPages <= 1) {
+          this.$pagination.find('div.pagination').hide()
         }
 
-        if (!this.options.paginationLoop) {
-          if (this.options.pageNumber === 1) {
+        if (o.smartDisplay) {
+          if (pageList.length < 2 || o.totalRows <= pageList[0]) {
+            this.$pagination.find('span.page-list').hide()
+          }
+        }
+
+        // when data is empty, hide the pagination
+        this.$pagination[this.getData().length ? 'show' : 'hide']()
+
+        if (!o.paginationLoop) {
+          if (o.pageNumber === 1) {
             $pre.addClass('disabled')
           }
-          if (this.options.pageNumber === this.totalPages) {
+          if (o.pageNumber === this.totalPages) {
             $next.addClass('disabled')
           }
         }
 
         if ($allSelected) {
-          this.options.pageSize = this.options.formatAllRows()
+          o.pageSize = o.formatAllRows()
         }
         // removed the events for last and first, onPageNumber executeds the same logic
-        $pageList.off('click').on('click', $.proxy(this.onPageListChange, this))
-        $pre.off('click').on('click', $.proxy(this.onPagePre, this))
-        $next.off('click').on('click', $.proxy(this.onPageNext, this))
-        $number.off('click').on('click', $.proxy(this.onPageNumber, this))
+        $pageList.off('click').on('click', e => this.onPageListChange(e))
+        $pre.off('click').on('click', e => this.onPagePre(e))
+        $next.off('click').on('click', e => this.onPageNext(e))
+        $number.off('click').on('click', e => this.onPageNumber(e))
       }
     }
 
@@ -1633,7 +1775,8 @@
       event.preventDefault()
       const $this = $(event.currentTarget)
 
-      $this.parent().addClass('active').siblings().removeClass('active')
+      $this.parent().addClass(this.constants.classes.dropdownActive)
+        .siblings().removeClass(this.constants.classes.dropdownActive)
       this.options.pageSize = $this.text().toUpperCase() === this.options.formatAllRows().toUpperCase()
         ? this.options.formatAllRows() : +$this.text()
       this.$toolbar.find('.page-size').text(this.options.pageSize)
@@ -1703,13 +1846,13 @@
         }
       }
 
-      if (item._data && !$.isEmptyObject(item._data)) {
+      if (item._data && !Utils.isEmptyObject(item._data)) {
         for (const [k, v] of Object.entries(item._data)) {
           // ignore data-index
           if (k === 'index') {
             return
           }
-          data_ += ` data-${k}="${v}"`
+          data_ += ` data-${k}='${typeof v === 'object' ? JSON.stringify(v) : v}'`
         }
       }
 
@@ -1733,7 +1876,7 @@
         if (Utils.calculateObjectValue(null, this.options.detailFilter, [i, item])) {
           html.push(`
             <a class="detail-icon" href="#">
-            <i class="${this.options.iconsPrefix} ${this.options.icons.detailOpen}"></i>
+            ${Utils.sprintf(this.constants.html.icon, this.options.iconsPrefix, this.options.icons.detailOpen)}
             </a>
           `)
         }
@@ -1809,7 +1952,7 @@
         value = Utils.calculateObjectValue(column,
           this.header.formatters[j], [value_, item, i, field], value_)
 
-        if (item[`_${field}_data`] && !$.isEmptyObject(item[`_${field}_data`])) {
+        if (item[`_${field}_data`] && !Utils.isEmptyObject(item[`_${field}_data`])) {
           for (const [k, v] of Object.entries(item[`_${field}_data`])) {
             // ignore data-index
             if (k === 'index') {
@@ -1830,14 +1973,17 @@
           text = [
             this.options.cardView
               ? `<div class="card-view ${c}">`
-              : `<td class="bs-checkbox ${c}">`,
-            `<input
+              : `<td class="bs-checkbox ${c}"${class_}${style_}>`,
+            `<label>
+              <input
               data-index="${i}"
               name="${this.options.selectItemName}"
               type="${type}"
               ${Utils.sprintf('value="%s"', item[this.options.idField])}
               ${Utils.sprintf('checked="%s"', isChecked ? 'checked' : undefined)}
-              ${Utils.sprintf('disabled="%s"', isDisabled ? 'disabled' : undefined)} />`,
+              ${Utils.sprintf('disabled="%s"', isDisabled ? 'disabled' : undefined)} />
+              <span></span>
+              </label>`,
             this.header.formatters[j] && typeof value === 'string' ? value : '',
             this.options.cardView ? '</div>' : '</td>'
           ].join('')
@@ -1849,9 +1995,9 @@
 
           if (this.options.cardView) {
             const cardTitle = this.options.showHeader
-              ? `<span class="title"${style}>${Utils.getFieldTitle(this.columns, field)}</span>` : ''
+              ? `<span class="card-view-title"${style_}>${Utils.getFieldTitle(this.columns, field)}</span>` : ''
 
-            text = `<div class="card-view">${cardTitle}<span class="value">${value}</span></div>`
+            text = `<div class="card-view">${cardTitle}<span class="card-view-value">${value}</span></div>`
 
             if (this.options.smartDisplay && value === '') {
               text = '<div class="card-view"></div>'
@@ -1917,8 +2063,10 @@
       this.$body.find('> tr[data-index] > td').off('click dblclick').on('click dblclick', ({currentTarget, type, target}) => {
         const $td = $(currentTarget)
         const $tr = $td.parent()
+        const $cardviewArr = $(target).parents('.card-views').children()
+        const $cardviewTarget = $(target).parents('.card-view')
         const item = this.data[$tr.data('index')]
-        const index = $td[0].cellIndex
+        const index = this.options.cardView ? $cardviewArr.index($cardviewTarget) : $td[0].cellIndex
         const fields = this.getVisibleFields()
         const field = fields[this.options.detailView && !this.options.cardView ? index - 1 : index]
         const column = this.columns[this.fieldsColumnsIndex[field]]
@@ -1936,39 +2084,22 @@
           type === 'click' &&
           this.options.clickToSelect &&
           column.clickToSelect &&
-          !this.options.ignoreClickToSelectOn(target)
+          !Utils.calculateObjectValue(this.options, this.options.ignoreClickToSelectOn, [target])
         ) {
           const $selectItem = $tr.find(Utils.sprintf('[name="%s"]', this.options.selectItemName))
           if ($selectItem.length) {
             $selectItem[0].click() // #144: .trigger('click') bug
           }
         }
+
+        if (type === 'click' && this.options.detailViewByClick) {
+          this.toggleDetailView($tr.find('.detail-icon'), this.header.detailFormatters[index - 1])
+        }
       })
 
       this.$body.find('> tr[data-index] > td > .detail-icon').off('click').on('click', e => {
         e.preventDefault()
-
-        const $this = $(e.currentTarget) // Fix #980 Detail view, when searching, returns wrong row
-        const $tr = $this.parent().parent()
-        const index = $tr.data('index')
-        const row = data[index]
-
-        // remove and update
-        if ($tr.next().is('tr.detail-view')) {
-          $this.find('i').attr('class', Utils.sprintf('%s %s', this.options.iconsPrefix, this.options.icons.detailOpen))
-          this.trigger('collapse-row', index, row, $tr.next())
-          $tr.next().remove()
-        } else {
-          $this.find('i').attr('class', Utils.sprintf('%s %s', this.options.iconsPrefix, this.options.icons.detailClose))
-          $tr.after(Utils.sprintf('<tr class="detail-view"><td colspan="%s"></td></tr>', $tr.find('td').length))
-          const $element = $tr.next().find('td')
-          const content = Utils.calculateObjectValue(this.options, this.options.detailFormatter, [index, row, $element], '')
-          if ($element.length === 1) {
-            $element.append(content)
-          }
-          this.trigger('expand-row', index, row, $element)
-        }
-        this.resetView()
+        this.toggleDetailView($(e.currentTarget))
         return false
       })
 
@@ -2021,9 +2152,38 @@
       })
 
       this.updateSelected()
+      this.initFooter()
       this.resetView()
 
+      if (this.options.sidePagination !== 'server') {
+        this.options.totalRows = data.length
+      }
+
       this.trigger('post-body', data)
+    }
+
+    toggleDetailView ($iconElement, columnDetailFormatter) {
+      const $tr = $iconElement.parent().parent()
+      const index = $tr.data('index')
+      const row = this.data[index]
+
+      // remove and update
+      if ($tr.next().is('tr.detail-view')) {
+        $iconElement.html(Utils.sprintf(this.constants.html.icon, this.options.iconsPrefix, this.options.icons.detailOpen))
+        this.trigger('collapse-row', index, row, $tr.next())
+        $tr.next().remove()
+      } else {
+        $iconElement.html(Utils.sprintf(this.constants.html.icon, this.options.iconsPrefix, this.options.icons.detailClose))
+        $tr.after(Utils.sprintf('<tr class="detail-view"><td colspan="%s"></td></tr>', $tr.children('td').length))
+        const $element = $tr.next().find('td')
+        const detailFormatter = columnDetailFormatter || this.options.detailFormatter
+        const content = Utils.calculateObjectValue(this.options, detailFormatter, [index, row, $element], '')
+        if ($element.length === 1) {
+          $element.append(content)
+        }
+        this.trigger('expand-row', index, row, $element)
+      }
+      this.resetView()
     }
 
     initServer (silent, query, url) {
@@ -2068,7 +2228,7 @@
         }
       }
 
-      if (!($.isEmptyObject(this.filterColumnsPartial))) {
+      if (!(Utils.isEmptyObject(this.filterColumnsPartial))) {
         params.filter = JSON.stringify(this.filterColumnsPartial, null)
       }
 
@@ -2082,7 +2242,7 @@
       }
 
       if (!silent) {
-        this.$tableLoading.show()
+        this.showLoading()
       }
       const request = $.extend({}, Utils.calculateObjectValue(null, this.options.ajaxOptions), {
         type: this.options.method,
@@ -2099,7 +2259,7 @@
           this.load(res)
           this.trigger('load-success', res)
           if (!silent) {
-            this.$tableLoading.hide()
+            this.hideLoading()
           }
         },
         error: jqXHR => {
@@ -2123,6 +2283,8 @@
         }
         this._xhr = $.ajax(request)
       }
+
+      return data
     }
 
     initSearchText () {
@@ -2186,12 +2348,12 @@
       // fix #61: the hidden table reset header bug.
       // fix bug: get $el.css('width') error sometime (height = 500)
       clearTimeout(this.timeoutId_)
-      this.timeoutId_ = setTimeout($.proxy(this.fitHeader, this), this.$el.is(':hidden') ? 100 : 0)
+      this.timeoutId_ = setTimeout(() => this.fitHeader(), this.$el.is(':hidden') ? 100 : 0)
     }
 
     fitHeader () {
       if (this.$el.is(':hidden')) {
-        this.timeoutId_ = setTimeout($.proxy(this.fitHeader, this), 100)
+        this.timeoutId_ = setTimeout(() => this.fitHeader(), 100)
         return
       }
 
@@ -2223,6 +2385,8 @@
         .find('table').css('width', this.$el.outerWidth())
         .html('').attr('class', this.$el.attr('class'))
         .append(this.$header_)
+
+      this.$tableLoading.css('width', this.$el.outerWidth())
 
       const focusedTemp = $('.focus-temp:visible:eq(0)')
       if (focusedTemp.length > 0) {
@@ -2273,13 +2437,13 @@
       this.trigger('post-header')
     }
 
-    resetFooter () {
-      const data = this.getData()
-      const html = []
-
+    initFooter () {
       if (!this.options.showFooter || this.options.cardView) { // do nothing
         return
       }
+
+      const data = this.getData()
+      const html = []
 
       if (!this.options.cardView && this.options.detailView) {
         html.push('<th class="detail"><div class="th-inner"></div><div class="fht-cell"></div></th>')
@@ -2291,10 +2455,10 @@
         let valign = ''
         const csses = []
         let style = {}
-        const class_ = Utils.sprintf(' class="%s"', column['class'])
+        let class_ = Utils.sprintf(' class="%s"', column['class'])
 
         if (!column.visible) {
-          return
+          continue
         }
 
         if (this.options.cardView && (!column.cardVisible)) {
@@ -2304,18 +2468,23 @@
         falign = Utils.sprintf('text-align: %s; ', column.falign ? column.falign : column.align)
         valign = Utils.sprintf('vertical-align: %s; ', column.valign)
 
-        style = Utils.calculateObjectValue(null, this.options.footerStyle)
+        style = Utils.calculateObjectValue(null, this.options.footerStyle, [column])
 
         if (style && style.css) {
-          for (const [key, value] of Object.keys(style.css)) {
+          for (const [key, value] of Object.entries(style.css)) {
             csses.push(`${key}: ${value}`)
           }
+        }
+        if (style && style.classes) {
+          class_ = Utils.sprintf(' class="%s"', column['class'] ?
+            [column['class'], style.classes].join(' ') : style.classes)
         }
 
         html.push('<th', class_, Utils.sprintf(' style="%s"', falign + valign + csses.concat().join('; ')), '>')
         html.push('<div class="th-inner">')
 
-        html.push(Utils.calculateObjectValue(column, column.footerFormatter, [data], '') || '')
+        html.push(Utils.calculateObjectValue(column, column.footerFormatter,
+          [data], this.footerData[0] && this.footerData[0][column.field] || ''))
 
         html.push('</div>')
         html.push('<div class="fht-cell"></div>')
@@ -2324,13 +2493,13 @@
       }
 
       this.$tableFooter.find('tr').html(html.join(''))
-      this.$tableFooter.show()
-      this.fitFooter()
+
+      this.trigger('post-footer', this.$tableFooter)
     }
 
     fitFooter () {
       if (this.$el.is(':hidden')) {
-        setTimeout($.proxy(this.fitFooter, this), 100)
+        setTimeout(() => this.fitFooter(), 100)
         return
       }
 
@@ -2454,16 +2623,17 @@
       if (this.options.showHeader && this.options.height) {
         this.$tableHeader.show()
         this.resetHeader()
-        padding += this.$header.outerHeight()
+        padding += this.$header.outerHeight(true)
       } else {
         this.$tableHeader.hide()
         this.trigger('post-header')
       }
 
       if (this.options.showFooter) {
-        this.resetFooter()
+        this.$tableFooter.show()
+        this.fitFooter()
         if (this.options.height) {
-          padding += this.$tableFooter.outerHeight()
+          padding += this.$tableFooter.outerHeight(true)
         }
       }
 
@@ -2484,7 +2654,7 @@
 
     getData (useCurrentPage) {
       let data = this.options.data
-      if (this.searchText || this.options.sortName || !$.isEmptyObject(this.filterColumns) || !$.isEmptyObject(this.filterColumnsPartial)) {
+      if (this.searchText || this.options.sortName || !Utils.isEmptyObject(this.filterColumns) || !Utils.isEmptyObject(this.filterColumnsPartial)) {
         data = this.data
       }
 
@@ -2502,6 +2672,10 @@
       // #431: support pagination
       if (this.options.pagination && this.options.sidePagination === 'server') {
         this.options.totalRows = data[this.options.totalField]
+      }
+
+      if (this.options.pagination && this.options.sidePagination === 'server') {
+        this.options.totalNotFiltered = data[this.options.totalNotFilteredField]
       }
 
       fixedScroll = data.fixedScroll
@@ -2816,10 +2990,10 @@
     }
 
     getOptions () {
-      // Deep copy: remove data
-      const options = $.extend({}, this.options)
+      // deep copy and remove data
+      const options = JSON.parse(JSON.stringify(this.options))
       delete options.data
-      return $.extend(true, {}, options)
+      return options
     }
 
     getSelections () {
@@ -2933,26 +3107,24 @@
     }
 
     showLoading () {
-      this.$tableLoading.show()
+      this.$tableLoading.css('display', 'flex')
     }
 
     hideLoading () {
-      this.$tableLoading.hide()
+      this.$tableLoading.css('display', 'none')
     }
 
     togglePagination () {
       this.options.pagination = !this.options.pagination
-      const button = this.$toolbar.find('button[name="paginationSwitch"] i')
-      if (this.options.pagination) {
-        button.attr('class', `${this.options.iconsPrefix} ${this.options.icons.paginationSwitchDown}`)
-      } else {
-        button.attr('class', `${this.options.iconsPrefix} ${this.options.icons.paginationSwitchUp}`)
-      }
+      this.$toolbar.find('button[name="paginationSwitch"]')
+        .html(Utils.sprintf(this.constants.html.icon, this.options.iconsPrefix,
+          this.options.pagination ? this.options.icons.paginationSwitchDown : this.options.icons.paginationSwitchUp))
       this.updatePagination()
     }
 
     toggleFullscreen () {
       this.$el.closest('.bootstrap-table').toggleClass('fullscreen')
+      this.resetView()
     }
 
     refresh (params) {
@@ -2965,9 +3137,8 @@
       if (params && params.pageSize) {
         this.options.pageSize = params.pageSize
       }
-      this.initServer(params && params.silent,
-        params && params.query, params && params.url)
-      this.trigger('refresh', params)
+      this.trigger('refresh', this.initServer(params && params.silent,
+        params && params.query, params && params.url))
     }
 
     resetWidth () {
@@ -2980,11 +3151,17 @@
     }
 
     showColumn (field) {
-      this.toggleColumn(this.fieldsColumnsIndex[field], true, true)
+      const fields = Array.isArray(field) ? field : [field]
+      fields.forEach(field => {
+        this.toggleColumn(this.fieldsColumnsIndex[field], true, true)
+      })
     }
 
     hideColumn (field) {
-      this.toggleColumn(this.fieldsColumnsIndex[field], false, true)
+      const fields = Array.isArray(field) ? field : [field]
+      fields.forEach(field => {
+        this.toggleColumn(this.fieldsColumnsIndex[field], false, true)
+      })
     }
 
     getHiddenColumns () {
@@ -3021,23 +3198,37 @@
       this.toggleAllColumns(false)
     }
 
-    filterBy (columns) {
-      this.filterColumns = $.isEmptyObject(columns) ? {} : columns
+    filterBy (columns, options) {
+      this.filterOptions = Utils.isEmptyObject(options) ? this.options.filterOptions : $.extend(this.options.filterOptions, options)
+      this.filterColumns = Utils.isEmptyObject(columns) ? {} : columns
       this.options.pageNumber = 1
       this.initSearch()
       this.updatePagination()
     }
 
-    scrollTo (_value) {
-      if (typeof _value === 'undefined') {
+    scrollTo (params) {
+      if (typeof params === 'undefined') {
         return this.$tableBody.scrollTop()
       }
 
-      let value = _value
-      if (typeof _value === 'string' && _value === 'bottom') {
-        value = this.$tableBody[0].scrollHeight
+      let options = {unit: 'px', value: 0}
+      if (typeof params === 'object') {
+        options = Object.assign(options, params)
+      } else if (typeof params === 'string' && params === 'bottom') {
+        options.value = this.$tableBody[0].scrollHeight
+      } else if (typeof params === 'string') {
+        options.value = params
       }
-      this.$tableBody.scrollTop(value)
+
+      let scrollTo = options.value
+      if (options.unit === 'rows') {
+        scrollTo = 0
+        this.$body.find(`> tr:lt(${options.value})`).each((i, el) => {
+          scrollTo += $(el).outerHeight(true)
+        })
+      }
+
+      this.$tableBody.scrollTop(scrollTo)
     }
 
     getScrollPosition () {
@@ -3070,14 +3261,9 @@
       this.initHeader()
       // Fixed remove toolbar when click cardView button.
       // this.initToolbar();
-      const $icon = this.$toolbar.find('button[name="toggle"] i')
-      if (this.options.cardView) {
-        $icon.removeClass(this.options.icons.toggleOff)
-        $icon.addClass(this.options.icons.toggleOn)
-      } else {
-        $icon.removeClass(this.options.icons.toggleOn)
-        $icon.addClass(this.options.icons.toggleOff)
-      }
+      this.$toolbar.find('button[name="toggle"]')
+        .html(Utils.sprintf(this.constants.html.icon, this.options.iconsPrefix,
+          this.options.cardView ? this.options.icons.toggleOn : this.options.icons.toggleOff))
       this.initBody()
       this.trigger('toggle', this.options.cardView)
     }

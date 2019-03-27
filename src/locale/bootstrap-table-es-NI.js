@@ -5,19 +5,29 @@
 ($ => {
   $.fn.bootstrapTable.locales['es-NI'] = {
     formatLoadingMessage () {
-      return 'Cargando, por favor espere...'
+      return 'Cargando, por favor espere'
     },
     formatRecordsPerPage (pageNumber) {
       return `${pageNumber} registros por página`
     },
-    formatShowingRows (pageFrom, pageTo, totalRows) {
+    formatShowingRows (pageFrom, pageTo, totalRows, totalNotFiltered) {
+      if (totalNotFiltered !== undefined && totalNotFiltered > 0 && totalNotFiltered < totalRows) {
+        return `Mostrando de ${pageFrom} a ${pageTo} registros de ${totalRows} registros en total (filtered from ${totalNotFiltered} total entries)`
+      }
+
       return `Mostrando de ${pageFrom} a ${pageTo} registros de ${totalRows} registros en total`
+    },
+    formatDetailPagination (totalRows) {
+      return `Showing ${totalRows} rows`
     },
     formatSearch () {
       return 'Buscar'
     },
     formatNoMatches () {
       return 'No se encontraron registros'
+    },
+    formatPaginationSwitch () {
+      return 'Hide/Show pagination'
     },
     formatRefresh () {
       return 'Refrescar'
@@ -28,8 +38,29 @@
     formatColumns () {
       return 'Columnas'
     },
+    formatFullscreen () {
+      return 'Fullscreen'
+    },
     formatAllRows () {
       return 'Todo'
+    },
+    formatAutoRefresh () {
+      return 'Auto Refresh'
+    },
+    formatExport () {
+      return 'Export data'
+    },
+    formatClearFilters () {
+      return 'Clear filters'
+    },
+    formatJumpto () {
+      return 'GO'
+    },
+    formatAdvancedSearch () {
+      return 'Advanced search'
+    },
+    formatAdvancedCloseButton () {
+      return 'Close'
     }
   }
 

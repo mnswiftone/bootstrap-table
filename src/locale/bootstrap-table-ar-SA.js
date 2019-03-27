@@ -5,13 +5,20 @@
 ($ => {
   $.fn.bootstrapTable.locales['ar-SA'] = {
     formatLoadingMessage () {
-      return 'جاري التحميل, يرجى الإنتظار...'
+      return 'جاري التحميل, يرجى الإنتظار'
     },
     formatRecordsPerPage (pageNumber) {
       return `${pageNumber} سجل لكل صفحة`
     },
-    formatShowingRows (pageFrom, pageTo, totalRows) {
+    formatShowingRows (pageFrom, pageTo, totalRows, totalNotFiltered) {
+      if (totalNotFiltered !== undefined && totalNotFiltered > 0 && totalNotFiltered < totalRows) {
+        return `الظاهر ${pageFrom} إلى ${pageTo} من ${totalRows} سجل ${totalNotFiltered} total entries)`
+      }
+
       return `الظاهر ${pageFrom} إلى ${pageTo} من ${totalRows} سجل`
+    },
+    formatDetailPagination (totalRows) {
+      return `Showing ${totalRows} rows`
     },
     formatSearch () {
       return 'بحث'
@@ -19,8 +26,7 @@
     formatNoMatches () {
       return 'لا توجد نتائج مطابقة للبحث'
     },
-    formatPaginationSwitch () {
-      /* eslint-disable no-useless-escape */
+    formatPaginationSwitch () { /* eslint-disable no-useless-escape */
       return 'إخفاء\إظهار ترقيم الصفحات'
     },
     formatRefresh () {
@@ -31,6 +37,30 @@
     },
     formatColumns () {
       return 'أعمدة'
+    },
+    formatFullscreen () {
+      return 'Fullscreen'
+    },
+    formatAllRows () {
+      return 'All'
+    },
+    formatAutoRefresh () {
+      return 'Auto Refresh'
+    },
+    formatExport () {
+      return 'Export data'
+    },
+    formatClearFilters () {
+      return 'Clear filters'
+    },
+    formatJumpto () {
+      return 'GO'
+    },
+    formatAdvancedSearch () {
+      return 'Advanced search'
+    },
+    formatAdvancedCloseButton () {
+      return 'Close'
     }
   }
 

@@ -7,13 +7,20 @@
 ($ => {
   $.fn.bootstrapTable.locales['it-IT'] = {
     formatLoadingMessage () {
-      return 'Caricamento in corso...'
+      return 'Caricamento in corso'
     },
     formatRecordsPerPage (pageNumber) {
       return `${pageNumber} elementi per pagina`
     },
-    formatShowingRows (pageFrom, pageTo, totalRows) {
+    formatShowingRows (pageFrom, pageTo, totalRows, totalNotFiltered) {
+      if (totalNotFiltered !== undefined && totalNotFiltered > 0 && totalNotFiltered < totalRows) {
+        return `Visualizzazione da ${pageFrom} a ${pageTo} di ${totalRows} elementi (filtered from ${totalNotFiltered} total entries)`
+      }
+
       return `Visualizzazione da ${pageFrom} a ${pageTo} di ${totalRows} elementi`
+    },
+    formatDetailPagination (totalRows) {
+      return `Showing ${totalRows} rows`
     },
     formatSearch () {
       return 'Cerca'
@@ -33,14 +40,29 @@
     formatColumns () {
       return 'Colonne'
     },
+    formatFullscreen () {
+      return 'Fullscreen'
+    },
     formatAllRows () {
       return 'Tutto'
+    },
+    formatAutoRefresh () {
+      return 'Auto Refresh'
     },
     formatExport () {
       return 'Esporta dati'
     },
     formatClearFilters () {
       return 'Pulisci filtri'
+    },
+    formatJumpto () {
+      return 'GO'
+    },
+    formatAdvancedSearch () {
+      return 'Advanced search'
+    },
+    formatAdvancedCloseButton () {
+      return 'Close'
     }
 
   }

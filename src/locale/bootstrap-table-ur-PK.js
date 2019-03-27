@@ -10,14 +10,24 @@
     formatRecordsPerPage (pageNumber) {
       return `${pageNumber} ریکارڈز فی صفہ `
     },
-    formatShowingRows (pageFrom, pageTo, totalRows) {
+    formatShowingRows (pageFrom, pageTo, totalRows, totalNotFiltered) {
+      if (totalNotFiltered !== undefined && totalNotFiltered > 0 && totalNotFiltered < totalRows) {
+        return `دیکھیں ${pageFrom} سے ${pageTo} کے ${totalRows}ریکارڈز (filtered from ${totalNotFiltered} total entries)`
+      }
+
       return `دیکھیں ${pageFrom} سے ${pageTo} کے ${totalRows}ریکارڈز`
+    },
+    formatDetailPagination (totalRows) {
+      return `Showing ${totalRows} rows`
     },
     formatSearch () {
       return 'تلاش'
     },
     formatNoMatches () {
       return 'کوئی ریکارڈ نہیں ملا'
+    },
+    formatPaginationSwitch () {
+      return 'Hide/Show pagination'
     },
     formatRefresh () {
       return 'تازہ کریں'
@@ -27,6 +37,30 @@
     },
     formatColumns () {
       return 'کالم'
+    },
+    formatFullscreen () {
+      return 'Fullscreen'
+    },
+    formatAllRows () {
+      return 'All'
+    },
+    formatAutoRefresh () {
+      return 'Auto Refresh'
+    },
+    formatExport () {
+      return 'Export data'
+    },
+    formatClearFilters () {
+      return 'Clear filters'
+    },
+    formatJumpto () {
+      return 'GO'
+    },
+    formatAdvancedSearch () {
+      return 'Advanced search'
+    },
+    formatAdvancedCloseButton () {
+      return 'Close'
     }
   }
 

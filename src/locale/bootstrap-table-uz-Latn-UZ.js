@@ -5,13 +5,20 @@
 ($ => {
   $.fn.bootstrapTable.locales['uz-Latn-UZ'] = {
     formatLoadingMessage () {
-      return 'Yuklanyapti, iltimos kuting...'
+      return 'Yuklanyapti, iltimos kuting'
     },
     formatRecordsPerPage (pageNumber) {
       return `${pageNumber} qator har sahifada`
     },
-    formatShowingRows (pageFrom, pageTo, totalRows) {
+    formatShowingRows (pageFrom, pageTo, totalRows, totalNotFiltered) {
+      if (totalNotFiltered !== undefined && totalNotFiltered > 0 && totalNotFiltered < totalRows) {
+        return `Ko'rsatypati ${pageFrom} dan ${pageTo} gacha ${totalRows} qatorlarni (filtered from ${totalNotFiltered} total entries)`
+      }
+
       return `Ko'rsatypati ${pageFrom} dan ${pageTo} gacha ${totalRows} qatorlarni`
+    },
+    formatDetailPagination (totalRows) {
+      return `Showing ${totalRows} rows`
     },
     formatSearch () {
       return 'Qidirish'
@@ -31,14 +38,29 @@
     formatColumns () {
       return 'Ustunlar'
     },
+    formatFullscreen () {
+      return 'Fullscreen'
+    },
     formatAllRows () {
       return 'Hammasi'
+    },
+    formatAutoRefresh () {
+      return 'Auto Refresh'
     },
     formatExport () {
       return 'Eksport'
     },
     formatClearFilters () {
       return 'Filtrlarni tozalash'
+    },
+    formatJumpto () {
+      return 'GO'
+    },
+    formatAdvancedSearch () {
+      return 'Advanced search'
+    },
+    formatAdvancedCloseButton () {
+      return 'Close'
     }
   }
 

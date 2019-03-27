@@ -5,13 +5,20 @@
 ($ => {
   $.fn.bootstrapTable.locales['pt-PT'] = {
     formatLoadingMessage () {
-      return 'A carregar, por favor aguarde...'
+      return 'A carregar, por favor aguarde'
     },
     formatRecordsPerPage (pageNumber) {
       return `${pageNumber} registos por p&aacute;gina`
     },
-    formatShowingRows (pageFrom, pageTo, totalRows) {
+    formatShowingRows (pageFrom, pageTo, totalRows, totalNotFiltered) {
+      if (totalNotFiltered !== undefined && totalNotFiltered > 0 && totalNotFiltered < totalRows) {
+        return `A mostrar ${pageFrom} at&eacute; ${pageTo} de ${totalRows} linhas (filtered from ${totalNotFiltered} total entries)`
+      }
+
       return `A mostrar ${pageFrom} at&eacute; ${pageTo} de ${totalRows} linhas`
+    },
+    formatDetailPagination (totalRows) {
+      return `Showing ${totalRows} rows`
     },
     formatSearch () {
       return 'Pesquisa'
@@ -31,8 +38,29 @@
     formatColumns () {
       return 'Colunas'
     },
+    formatFullscreen () {
+      return 'Fullscreen'
+    },
     formatAllRows () {
       return 'Tudo'
+    },
+    formatAutoRefresh () {
+      return 'Auto Refresh'
+    },
+    formatExport () {
+      return 'Export data'
+    },
+    formatClearFilters () {
+      return 'Clear filters'
+    },
+    formatJumpto () {
+      return 'GO'
+    },
+    formatAdvancedSearch () {
+      return 'Advanced search'
+    },
+    formatAdvancedCloseButton () {
+      return 'Close'
     }
   }
 

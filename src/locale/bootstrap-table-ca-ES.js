@@ -6,13 +6,20 @@
 ($ => {
   $.fn.bootstrapTable.locales['ca-ES'] = {
     formatLoadingMessage () {
-      return 'Espereu, si us plau...'
+      return 'Espereu, si us plau'
     },
     formatRecordsPerPage (pageNumber) {
       return `${pageNumber} resultats per pàgina`
     },
-    formatShowingRows (pageFrom, pageTo, totalRows) {
+    formatShowingRows (pageFrom, pageTo, totalRows, totalNotFiltered) {
+      if (totalNotFiltered !== undefined && totalNotFiltered > 0 && totalNotFiltered < totalRows) {
+        return `Mostrant de ${pageFrom} fins ${pageTo} - total ${totalRows} resultats (filtered from ${totalNotFiltered} total entries)`
+      }
+
       return `Mostrant de ${pageFrom} fins ${pageTo} - total ${totalRows} resultats`
+    },
+    formatDetailPagination (totalRows) {
+      return `Showing ${totalRows} rows`
     },
     formatSearch () {
       return 'Cerca'
@@ -32,8 +39,29 @@
     formatColumns () {
       return 'Columnes'
     },
+    formatFullscreen () {
+      return 'Fullscreen'
+    },
     formatAllRows () {
       return 'Tots'
+    },
+    formatAutoRefresh () {
+      return 'Auto Refresh'
+    },
+    formatExport () {
+      return 'Export data'
+    },
+    formatClearFilters () {
+      return 'Clear filters'
+    },
+    formatJumpto () {
+      return 'GO'
+    },
+    formatAdvancedSearch () {
+      return 'Advanced search'
+    },
+    formatAdvancedCloseButton () {
+      return 'Close'
     }
   }
 

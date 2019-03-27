@@ -5,12 +5,16 @@
 ($ => {
   $.fn.bootstrapTable.locales['nl-NL'] = {
     formatLoadingMessage () {
-      return 'Laden, even geduld...'
+      return 'Laden, even geduld'
     },
     formatRecordsPerPage (pageNumber) {
       return `${pageNumber} records per pagina`
     },
-    formatShowingRows (pageFrom, pageTo, totalRows) {
+    formatShowingRows (pageFrom, pageTo, totalRows, totalNotFiltered) {
+      if (totalNotFiltered !== undefined && totalNotFiltered > 0 && totalNotFiltered < totalRows) {
+        return `Toon ${pageFrom} tot ${pageTo} van ${totalRows} record${(totalRows > 1) ? 's' : ''} (filtered from ${totalNotFiltered} total entries)`
+      }
+
       return `Toon ${pageFrom} tot ${pageTo} van ${totalRows} record${(totalRows > 1) ? 's' : ''}`
     },
     formatDetailPagination (totalRows) {
@@ -22,6 +26,9 @@
     formatNoMatches () {
       return 'Geen resultaten gevonden'
     },
+    formatPaginationSwitch () {
+      return 'Verberg/Toon paginatie'
+    },
     formatRefresh () {
       return 'Vernieuwen'
     },
@@ -31,17 +38,29 @@
     formatColumns () {
       return 'Kolommen'
     },
+    formatFullscreen () {
+      return 'Fullscreen'
+    },
     formatAllRows () {
       return 'Alle'
     },
-    formatPaginationSwitch () {
-      return 'Verberg/Toon paginatie'
+    formatAutoRefresh () {
+      return 'Auto Refresh'
     },
     formatExport () {
       return 'Exporteer data'
     },
     formatClearFilters () {
       return 'Verwijder filters'
+    },
+    formatJumpto () {
+      return 'GO'
+    },
+    formatAdvancedSearch () {
+      return 'Advanced search'
+    },
+    formatAdvancedCloseButton () {
+      return 'Close'
     }
   }
 

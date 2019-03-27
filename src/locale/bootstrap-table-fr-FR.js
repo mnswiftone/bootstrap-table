@@ -6,13 +6,20 @@
 ($ => {
   $.fn.bootstrapTable.locales['fr-FR'] = {
     formatLoadingMessage () {
-      return 'Chargement en cours, patientez, s´il vous plaît ...'
+      return 'Chargement en cours, patientez, s´il vous plaît'
     },
     formatRecordsPerPage (pageNumber) {
       return `${pageNumber} lignes par page`
     },
-    formatShowingRows (pageFrom, pageTo, totalRows) {
+    formatShowingRows (pageFrom, pageTo, totalRows, totalNotFiltered) {
+      if (totalNotFiltered !== undefined && totalNotFiltered > 0 && totalNotFiltered < totalRows) {
+        return `Affichage des lignes ${pageFrom} à ${pageTo} sur ${totalRows} lignes au total (filtered from ${totalNotFiltered} total entries)`
+      }
+
       return `Affichage des lignes ${pageFrom} à ${pageTo} sur ${totalRows} lignes au total`
+    },
+    formatDetailPagination (totalRows) {
+      return `Showing ${totalRows} rows`
     },
     formatSearch () {
       return 'Rechercher'
@@ -32,8 +39,14 @@
     formatColumns () {
       return 'Colonnes'
     },
+    formatFullscreen () {
+      return 'Fullscreen'
+    },
     formatAllRows () {
       return 'Tous'
+    },
+    formatAutoRefresh () {
+      return 'Auto Refresh'
     },
     formatExport () {
       return 'Exporter les données'
@@ -41,44 +54,8 @@
     formatClearFilters () {
       return 'Vider les filtres'
     },
-    formatMultipleSort () {
-      return 'Tri avancé'
-    },
-    formatAddLevel () {
-      return 'Ajouter un niveau'
-    },
-    formatDeleteLevel () {
-      return 'Supprimer un niveau'
-    },
-    formatColumn () {
-      return 'Colonne'
-    },
-    formatOrder () {
-      return 'Ordre'
-    },
-    formatSortBy () {
-      return 'Trier par'
-    },
-    formatThenBy () {
-      return 'Puis par'
-    },
-    formatSort () {
-      return 'Trier'
-    },
-    formatCancel () {
-      return 'Annuler'
-    },
-    formatDuplicateAlertTitle () {
-      return 'Doublon(s) détecté(s)!'
-    },
-    formatDuplicateAlertDescription () {
-      return 'Supprimez ou changez les colonnes dupliquées.'
-    },
-    formatSortOrders () {
-      return {
-        asc: 'Croissant',
-        desc: 'Décroissant'
-      }
+    formatJumpto () {
+      return 'GO'
     },
     formatAdvancedSearch () {
       return 'Recherche avancée'

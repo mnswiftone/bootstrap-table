@@ -5,13 +5,20 @@
 ($ => {
   $.fn.bootstrapTable.locales['af-ZA'] = {
     formatLoadingMessage () {
-      return 'Besig om te laai, wag asseblief ...'
+      return 'Besig om te laai, wag asseblief'
     },
     formatRecordsPerPage (pageNumber) {
       return `${pageNumber} rekords per bladsy`
     },
-    formatShowingRows (pageFrom, pageTo, totalRows) {
+    formatShowingRows (pageFrom, pageTo, totalRows, totalNotFiltered) {
+      if (totalNotFiltered !== undefined && totalNotFiltered > 0 && totalNotFiltered < totalRows) {
+        return `Resultate ${pageFrom} tot ${pageTo} van ${totalRows} rye (filtered from ${totalNotFiltered} total entries)`
+      }
+
       return `Resultate ${pageFrom} tot ${pageTo} van ${totalRows} rye`
+    },
+    formatDetailPagination (totalRows) {
+      return `Showing ${totalRows} rows`
     },
     formatSearch () {
       return 'Soek'
@@ -30,6 +37,30 @@
     },
     formatColumns () {
       return 'Kolomme'
+    },
+    formatFullscreen () {
+      return 'Fullscreen'
+    },
+    formatAllRows () {
+      return 'All'
+    },
+    formatAutoRefresh () {
+      return 'Auto Refresh'
+    },
+    formatExport () {
+      return 'Export data'
+    },
+    formatClearFilters () {
+      return 'Clear filters'
+    },
+    formatJumpto () {
+      return 'GO'
+    },
+    formatAdvancedSearch () {
+      return 'Advanced search'
+    },
+    formatAdvancedCloseButton () {
+      return 'Close'
     }
   }
 

@@ -10,8 +10,15 @@
     formatRecordsPerPage (pageNumber) {
       return `ページ当たり最大${pageNumber}件`
     },
-    formatShowingRows (pageFrom, pageTo, totalRows) {
+    formatShowingRows (pageFrom, pageTo, totalRows, totalNotFiltered) {
+      if (totalNotFiltered !== undefined && totalNotFiltered > 0 && totalNotFiltered < totalRows) {
+        return `全${totalRows}件から、${pageFrom}から${pageTo}件目まで表示しています (filtered from ${totalNotFiltered} total entries)`
+      }
+
       return `全${totalRows}件から、${pageFrom}から${pageTo}件目まで表示しています`
+    },
+    formatDetailPagination (totalRows) {
+      return `Showing ${totalRows} rows`
     },
     formatSearch () {
       return '検索'
@@ -31,8 +38,29 @@
     formatColumns () {
       return '列'
     },
+    formatFullscreen () {
+      return 'Fullscreen'
+    },
     formatAllRows () {
       return 'すべて'
+    },
+    formatAutoRefresh () {
+      return 'Auto Refresh'
+    },
+    formatExport () {
+      return 'Export data'
+    },
+    formatClearFilters () {
+      return 'Clear filters'
+    },
+    formatJumpto () {
+      return 'GO'
+    },
+    formatAdvancedSearch () {
+      return 'Advanced search'
+    },
+    formatAdvancedCloseButton () {
+      return 'Close'
     }
   }
 
